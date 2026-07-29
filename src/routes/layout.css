@@ -1,0 +1,39 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+@plugin "daisyui/theme" {
+  name: "tokyo-night";
+  default: false;
+  /* prefersdark: true; */
+  color-scheme: "dark";
+
+  --color-base-100: oklch(22.629% 0.021 280.487);
+  --color-base-200: oklch(20.398% 0.016 284.91);
+  --color-base-300: oklch(17.491% 0.008 285.52);
+  --color-base-content: oklch(76.659% 0.054 275.492);
+  --color-primary: oklch(71.898% 0.132 264.202);
+  --color-primary-content: oklch(22.629% 0.021 280.487);
+  --color-secondary: oklch(75.146% 0.134 299.499);
+  --color-secondary-content: oklch(22.629% 0.021 280.487);
+  --color-accent: oklch(82.004% 0.105 235.715);
+  --color-accent-content: oklch(22.629% 0.021 280.487);
+  --color-neutral: oklch(20.398% 0.016 284.91);
+  --color-neutral-content: oklch(76.659% 0.054 275.492);
+  --color-info: oklch(82.004% 0.105 235.715);
+  --color-info-content: oklch(22.629% 0.021 280.487);
+  --color-success: oklch(82.174% 0.1 182.485);
+  --color-success-content: oklch(22.629% 0.021 280.487);
+  --color-warning: oklch(78.387% 0.106 75.428);
+  --color-warning-content: oklch(22.629% 0.021 280.487);
+  --color-error: oklch(72.269% 0.159 10.276);
+  --color-error-content: oklch(22.629% 0.021 280.487);
+
+  --radius-selector: 1rem;
+  --radius-field: 1rem;
+  --radius-box: 1rem;
+
+  --border: 1px;
+
+  --depth: 0;
+  --noise: 0;
+}
