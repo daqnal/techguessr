@@ -37,3 +37,14 @@
   --depth: 0;
   --noise: 0;
 }
+
+@import "@fontsource-variable/outfit/wght.css";
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: "Outfit Variable", sans-serif;
+}
