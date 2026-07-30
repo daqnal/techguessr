@@ -1,13 +1,19 @@
 <script lang="ts">
   import { supabase } from "../../supabaseClient";
 
-  let loading = $state(false);
+  let authType: string = $state("login");
+  let loginLoading = $state(false);
+  let signupLoading = $state(false);
   let email = $state("");
+  let password = $state("");
 
   const handleLogin = async () => {
     try {
-      loading = true;
-      const { error } = await supabase.auth.signInWithOtp({ email });
+      loginLoading = true;
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) throw error;
       alert("Check your email for login link!");
     } catch (error) {
@@ -15,42 +21,104 @@
         alert(error.message);
       }
     } finally {
-      loading = false;
+      loginLoading = false;
+    }
+  };
+
+  const handleSignup = async () => {
+    try {
+      signupLoading = true;
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(error.message);
+      }
+    } finally {
+      signupLoading = false;
     }
   };
 </script>
 
-<div class="card">
-  <div class="" aria-live="polite">
-    <h1 class="">Supabase + Svelte</h1>
-    <p class="">Sign in via magic link with your email below</p>
+<div class="w-full h-full flex place-content-center place-items-center">
+  <div
+    class="card w-full max-w-84 bg-base-200 shadow-lg flex flex-col gap-4 p-4"
+    aria-live="polite"
+  >
+    <h1 class="text-xl text-center">Login or Signup</h1>
     <form
-      class=""
+      class="flex flex-col gap-4"
       onsubmit={(e) => {
         e.preventDefault();
-        handleLogin();
+        if (authType === "login") {
+          handleLogin();
+        } else {
+          handleSignup();
+        }
       }}
     >
-      <div>
-        <label for="email">Email</label>
+      <div class="w-full flex tabs tabs-sm tabs-box">
         <input
-          id="email"
-          class="input validator"
-          type="email"
-          placeholder="Your email"
-          bind:value={email}
+          defaultChecked
+          type="radio"
+          name="auth_tabs"
+          class="tab flex-1/2"
+          aria-label="Login"
+          onclick={() => (authType = "login")}
+        />
+        <input
+          type="radio"
+          name="auth_tabs"
+          class="tab flex-1/2"
+          aria-label="Signup"
+          onclick={() => (authType = "signup")}
         />
       </div>
-      <div>
+      <input
+        required
+        id="email"
+        class="input validator w-full"
+        type="email"
+        placeholder="Email"
+        bind:value={email}
+      />
+      <input
+        required
+        id="password"
+        class="input validator w-full"
+        type="password"
+        placeholder="Password"
+        minlength="8"
+        bind:value={password}
+      />
+
+      {#if authType === "login"}
         <button
           type="submit"
-          class="button block"
+          class="btn btn-primary w-full"
           aria-live="polite"
-          disabled={loading}
+          disabled={loginLoading}
         >
-          <span>{loading ? "Loading" : "Send magic link"}</span>
+          {#if loginLoading}
+            <span class="loading loading-spinner loading-md"></span>
+          {:else}
+            <span>Login</span>
+          {/if}
         </button>
-      </div>
+      {:else}
+        <button
+          type="submit"
+          class="btn btn-primary w-full"
+          aria-live="polite"
+          disabled={signupLoading}
+        >
+          {#if signupLoading}
+            <span class="loading loading-spinner loading-md"></span>
+          {:else}
+            <span>Signup</span>
+          {/if}
+        </button>
+      {/if}
     </form>
   </div>
 </div>
