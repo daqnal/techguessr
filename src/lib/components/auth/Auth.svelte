@@ -6,19 +6,21 @@
   let signupLoading = $state(false);
   let email = $state("");
   let password = $state("");
+  let authError: string | null = $state(null);
 
   const handleLogin = async () => {
     try {
       loginLoading = true;
+      authError = null;
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (error) throw error;
-      alert("Check your email for login link!");
     } catch (error) {
       if (error instanceof Error) {
-        alert(error.message);
+        authError = error.message;
       }
     } finally {
       loginLoading = false;
@@ -28,17 +30,23 @@
   const handleSignup = async () => {
     try {
       signupLoading = true;
+      authError = null;
+
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
     } catch (error) {
       if (error instanceof Error) {
-        alert(error.message);
+        authError = error.message;
       }
     } finally {
       signupLoading = false;
     }
   };
 </script>
+
+<svelte:head>
+  <title>TechGuessr - Login</title>
+</svelte:head>
 
 <div class="w-full h-full flex place-content-center place-items-center">
   <div
@@ -77,6 +85,7 @@
       <input
         required
         id="email"
+        name="email"
         class="input validator w-full"
         type="email"
         placeholder="Email"
@@ -85,6 +94,7 @@
       <input
         required
         id="password"
+        name="password"
         class="input validator w-full"
         type="password"
         placeholder="Password"
@@ -92,9 +102,29 @@
         bind:value={password}
       />
 
+      {#if authError}
+        <div role="alert" class="alert alert-error">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 shrink-0 stroke-current"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <span>{authError}</span>
+        </div>
+      {/if}
+
       {#if authType === "login"}
         <button
           type="submit"
+          name="login"
           class="btn btn-primary w-full"
           aria-live="polite"
           disabled={loginLoading}
@@ -108,6 +138,7 @@
       {:else}
         <button
           type="submit"
+          name="signup"
           class="btn btn-primary w-full"
           aria-live="polite"
           disabled={signupLoading}
