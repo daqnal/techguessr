@@ -6,8 +6,10 @@
   import Account from "$lib/components/auth/Account.svelte";
 
   let session = $state<AuthSession | null>(null);
+  let loading: boolean = $state(true);
 
   onMount(() => {
+    loading = true;
     supabase.auth.getSession().then(({ data }) => {
       session = data.session;
     });
@@ -15,11 +17,17 @@
     supabase.auth.onAuthStateChange((_event, _session) => {
       session = _session;
     });
+
+    loading = false;
   });
 </script>
 
 <div class="w-full flex-1">
-  {#if !session}
+  {#if loading}
+    <div class="w-full h-full flex place-content-center place-items-center">
+      <span class="loading loading-spinner loading-md"></span>
+    </div>
+  {:else if !session}
     <Auth />
   {:else}
     <Account {session} />

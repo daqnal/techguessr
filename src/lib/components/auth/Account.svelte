@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import type { AuthSession } from "@supabase/supabase-js";
   import { supabase } from "../../supabaseClient";
+  import Avatar from "./Avatar.svelte";
 
   interface Props {
     session: AuthSession;
@@ -10,8 +11,8 @@
   let { session }: Props = $props();
 
   let loading = $state(false);
-  let email = $state<string | null>(null);
   let username = $state<string | null>(null);
+  let avatarUrl: string = $state("");
 
   onMount(() => {
     getProfile();
@@ -28,12 +29,11 @@
         .eq("id", user.id)
         .single();
 
-      console.log(error);
-
       if (error && status !== 406) throw error;
 
       if (data) {
         username = data.username;
+        avatarUrl = data.avatar_url;
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -98,17 +98,38 @@
           updateProfile();
         }}
       >
-        <p class="font-bold text-center">{session.user.email}</p>
+        <!-- <span class="font-bold text-xl text-center">{session.user.email}</span> -->
 
-        <div class="flex gap-2 place-items-center">
-          <label for="username"> Username</label>
-          <input
-            id="username"
-            class="input"
-            type="text"
-            placeholder="Username"
-            bind:value={username}
-          />
+        <Avatar
+          {supabase}
+          bind:url={avatarUrl}
+          onupload={() => {
+            updateProfile();
+          }}
+        />
+
+        <div class="flex flex-col gap-2 place-items-center">
+          <label for="email" class="floating-label w-full">
+            <input
+              id="email"
+              class="input"
+              disabled
+              type="text"
+              value={session.user.email}
+            />
+            <span>Email</span>
+          </label>
+
+          <label for="username" class="floating-label w-full">
+            <input
+              id="username"
+              class="input"
+              type="text"
+              placeholder="Username"
+              bind:value={username}
+            />
+            <span>Username</span>
+          </label>
         </div>
 
         <div class="flex gap-2">

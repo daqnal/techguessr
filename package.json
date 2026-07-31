@@ -24,6 +24,7 @@
 	},
 	"dependencies": {
 		"@fontsource-variable/outfit": "^5.3.0",
+		"@lucide/svelte": "^1.28.0",
 		"@supabase/supabase-js": "^2.111.0",
 		"daisyui": "^5.7.7"
 	}
