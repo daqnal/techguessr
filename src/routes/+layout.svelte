@@ -10,7 +10,7 @@
   ><link rel="icon" href={favicon} />
   <title>TechGuessr</title>
 </svelte:head>
-<div class="h-full flex flex-col">
+<div class="flex h-full min-h-0 flex-col">
   <Navbar />
   {@render children()}
 </div>

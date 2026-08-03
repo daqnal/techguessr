@@ -1,8 +1,8 @@
 <div class="flex-1 place-items-center place-content-center">
   <div class="flex flex-col place-content-center place-items-center gap-12">
     <h1 class="text-7xl">
-      <span class="italic font-[500] mr-[-5px]">Tech</span>
-      <span class="font-[900]">Guessr</span>
+      <span class="italic font-medium -mr-1.25">Tech</span>
+      <span class="font-black">Guessr</span>
     </h1>
     <div class="relative w-full max-w-141 h-[28rem] sm:h-[32rem]">
       <div class="hover-3d left-1/2 top-0 rotate-[5deg] z-10 cursor-help">
@@ -48,7 +48,7 @@
 
     <div class="hover:scale-[1.1] duration-200">
       <div class="aura hover:aura-lg aura-rainbow duration-4000 rounded-full">
-        <a href="/game" class="btn btn-xl rounded-full">Play now!</a>
+        <a href="/play" class="btn btn-xl rounded-full">Play now!</a>
       </div>
     </div>
   </div>

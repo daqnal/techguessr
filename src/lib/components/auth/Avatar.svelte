@@ -3,7 +3,6 @@
   import type { SupabaseClient } from "@supabase/supabase-js";
 
   interface Props {
-    size?: number;
     url?: string;
     supabase: SupabaseClient;
     upload?: boolean;
@@ -97,11 +96,7 @@
 <div class="flex flex-col place-content-center place-items-center gap-4">
   {#if upload}
     {#if avatarUrl}
-      <img
-        src={avatarUrl}
-        alt={avatarUrl ? "Avatar" : "No image"}
-        class={`w-${size} h-${size}`}
-      />
+      <img src={avatarUrl} alt="User's avatar" class="w-40 h-40" />
     {:else}
       <div
         class={`bg-primary-content w-${size} h-${size} rounded-full flex place-content-center place-items-center`}
@@ -111,6 +106,13 @@
         </span>
       </div>
     {/if}
+  {:else if avatarUrl}
+    <a
+      href="/auth"
+      class="btn btn-primary btn-circle w-8 h-8 rounded-full p-0.5"
+    >
+      <img src={avatarUrl} alt="User's avatar" class="w-full h-full" />
+    </a>
   {:else}
     <a href="/auth" class="btn btn-primary btn-sm btn-circle">
       <User {size} />
