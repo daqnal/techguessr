@@ -85,7 +85,7 @@
     class="card w-full max-w-84 bg-base-200 shadow-lg flex flex-col gap-4 p-4"
     aria-live="polite"
   >
-    <h1 class="text-xl text-center">Account Settings</h1>
+    <h1 class="text-2xl font-bold text-center">Account</h1>
     {#if loading}
       <div class="w-full flex-1 flex place-content-center place-items-center">
         <span class="loading loading-spinner loading-lg"></span>

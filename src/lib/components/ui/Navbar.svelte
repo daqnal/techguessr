@@ -50,17 +50,30 @@
       <li class={page.url.pathname === "/play" ? "menu-disabled" : ""}>
         <a href="/play">Play</a>
       </li>
+      {#if loggedIn}
+        <li class={page.url.pathname === "/submit" ? "menu-disabled" : ""}>
+          <a href="/submit">Submit</a>
+        </li>
+      {/if}
     </ul>
   </div>
   <div class="flex gap-2 pr-2">
-    <a href="/settings" class="btn btn-primary btn-circle btn-sm">
+    <a
+      href="/settings"
+      class="btn btn-primary btn-circle btn-sm tooltip tooltip-bottom"
+      data-tip="Settings"
+    >
       <Settings size={16} />
     </a>
 
     {#if loggedIn}
       <Avatar {supabase} upload={false} url={avatarPath ?? undefined} />
     {:else}
-      <a href="/auth" class="btn btn-primary btn-circle btn-sm">
+      <a
+        href="/auth"
+        class="btn btn-primary btn-circle btn-sm tooltip tooltip-bottom"
+        data-tip="Account"
+      >
         <User size={16} />
       </a>
     {/if}

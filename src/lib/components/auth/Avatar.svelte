@@ -9,7 +9,6 @@
     onupload?: () => void;
   }
   let {
-    size = 32,
     url = $bindable(),
     supabase,
     upload = true,
@@ -99,23 +98,28 @@
       <img src={avatarUrl} alt="User's avatar" class="w-40 h-40" />
     {:else}
       <div
-        class={`bg-primary-content w-${size} h-${size} rounded-full flex place-content-center place-items-center`}
+        class={`bg-primary-content w-32 h-32 rounded-full flex place-content-center place-items-center`}
       >
         <span class="text-primary cursor-default pointer-events-none">
-          <User {size} />
+          <User size={16} />
         </span>
       </div>
     {/if}
   {:else if avatarUrl}
     <a
       href="/auth"
-      class="btn btn-primary btn-circle w-8 h-8 rounded-full p-0.5"
+      class="btn btn-primary btn-circle w-8 h-8 rounded-full p-0.5 tooltip tooltip-bottom"
+      data-tip="Account"
     >
       <img src={avatarUrl} alt="User's avatar" class="w-full h-full" />
     </a>
   {:else}
-    <a href="/auth" class="btn btn-primary btn-sm btn-circle">
-      <User {size} />
+    <a
+      href="/auth"
+      class="btn btn-primary btn-sm btn-circle tooltip tooltip-bottom"
+      data-tip="Account"
+    >
+      <User size={16} />
     </a>
   {/if}
 
