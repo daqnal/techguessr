@@ -1,25 +1,32 @@
 import imageCompression from "browser-image-compression";
 import exifr from "exifr";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { toast } from "$lib/components/ui/toast/toast.svelte";
 
-export type Gps = { lat: number; long: number } | null;
+export type Gps = { lat: number | null; long: number | null } | null;
 
 export async function extractGps(file: File): Promise<Gps> {
   try {
     const gps = await exifr.gps(file);
+
     if (gps?.latitude != null && gps?.longitude != null) {
       return { lat: gps.latitude, long: gps.longitude };
+    } else {
+      toast("No GPS data detected — add coordinates in manually", "info");
     }
-  } catch {
-    /* no GPS */
+  } catch (error) {
+    toast(
+      error instanceof Error ? error.message : "EXIF extraction failed",
+      "error",
+    );
   }
+
   return null;
 }
 
-/** Resize long edge to ~1080, WebP ~0.8 — EXIF is dropped by the encoder */
 export async function compressPhoto(file: File): Promise<File> {
   const blob = await imageCompression(file, {
-    maxWidthOrHeight: 1920, // ~1080p long edge; use 1920 for a bit more zoom room
+    maxWidthOrHeight: 1920,
     maxSizeMB: 1.5,
     fileType: "image/webp",
     initialQuality: 0.82,
@@ -35,6 +42,7 @@ export async function uploadPhoto(
   userId: string,
   original: File,
   coords: Gps,
+  comment: string | null,
 ): Promise<void> {
   const gps = coords ?? (await extractGps(original));
   const compressed = await compressPhoto(original);
@@ -49,14 +57,13 @@ export async function uploadPhoto(
     });
   if (upErr) throw upErr;
 
-  const { error: dbErr } = await supabase
-    .from("photos")
-    .insert({
-      user_id: userId,
-      storage_path: path,
-      lat: gps?.lat ?? null,
-      long: gps?.long ?? null,
-      status: "pending",
-    });
+  const { error: dbErr } = await supabase.from("photos").insert({
+    user_id: userId,
+    storage_path: path,
+    lat: gps?.lat ?? null,
+    long: gps?.long ?? null,
+    status: "pending",
+    comment: comment,
+  });
   if (dbErr) throw dbErr;
 }

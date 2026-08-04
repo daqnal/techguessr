@@ -1,6 +1,8 @@
-<div class="flex-1 place-items-center place-content-center">
-  <div class="flex flex-col place-content-center place-items-center gap-12">
-    <h1 class="text-7xl">
+<div
+  class="flex-1 place-items-center place-content-center py-12 overflow-y-auto"
+>
+  <div class="flex flex-col place-content-center place-items-center">
+    <h1 class="text-7xl mb-12">
       <span class="italic font-medium -mr-1.25">Tech</span>
       <span class="font-black">Guessr</span>
     </h1>
