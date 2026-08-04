@@ -177,7 +177,6 @@
             previewUrl = null;
           }}
         >
-          <!-- Source should be a preview of each image from the photos bucket -->
           <img
             src={photo.thumbUrl}
             alt={photo.thumbUrl}

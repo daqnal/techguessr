@@ -10,6 +10,7 @@
     lat: number | null;
     long: number | null;
     status: "pending" | "approved" | "rejected";
+    publicUrl?: string | null;
   };
 
   const imageCount = 5;
@@ -18,6 +19,7 @@
   let mapOpen: boolean = $state(false);
   let lockedIn: boolean = $state(false);
   let photos: Photo[] = $state([]);
+  let currentPhotoIndex: number = $state(0);
 
   const handleLockIn = async () => {
     lockedIn = true;
@@ -32,14 +34,22 @@
     if (error) {
       toast(error.message, "error");
       return;
-    } else if (!data) {
+    } else if (data.length === 0) {
       toast("No photos :(", "error");
       return;
     }
 
     for (let i = 0; i < imageCount; i++) {
-      photos[i] = data[Math.floor(Math.random() * imageCount)];
+      const photo = data[Math.floor(Math.random() * imageCount)];
+
+      const { data: pubData } = supabase.storage
+        .from("photos")
+        .getPublicUrl(photo.storage_path);
+
+      photos[i] = { ...photo, publicUrl: pubData.publicUrl };
     }
+
+    imageLoading = false;
   };
 
   onMount(() => {
@@ -49,7 +59,7 @@
 
 <div class="flex flex-col flex-1 p-2 gap-2">
   <div class="flex-1 max-h-12 rounded-box"></div>
-  <div class="relative flex-1 rounded-box bg-base-200">
+  <div class="relative flex-1 min-h-0 overflow-hidden rounded-box bg-base-200">
     {#if imageLoading}
       <p class="h-full text-center place-content-center">
         <span class="loading loading-spinner loading-xl"></span>
@@ -57,9 +67,9 @@
       </p>
     {:else}
       <img
-        src=""
-        alt="Guess this location"
-        class="w-full h-full object-cover"
+        src={photos[0].publicUrl}
+        alt="Check internet connection 👌"
+        class="absolute inset-0 w-full h-full object-contain"
       />
     {/if}
 
@@ -71,7 +81,7 @@
       <button
         type="button"
         class="btn btn-primary btn-wide z-20 shadow-lg {lockedIn
-          ? 'btn-disabled'
+          ? 'btn-disabled bg-base-200/75'
           : ''}"
         onclick={() => handleLockIn()}
       >
