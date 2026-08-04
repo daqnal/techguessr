@@ -1,13 +1,50 @@
 <script lang="ts">
+  import { toast } from "$lib/components/ui/toast/toast.svelte";
+  import { supabase } from "$lib/supabaseClient";
   import { X, Map, Lock } from "@lucide/svelte";
+  import { onMount } from "svelte";
+
+  type Photo = {
+    id: string;
+    storage_path: string;
+    lat: number | null;
+    long: number | null;
+    status: "pending" | "approved" | "rejected";
+  };
+
+  const imageCount = 5;
 
   let imageLoading: boolean = $state(true);
   let mapOpen: boolean = $state(false);
   let lockedIn: boolean = $state(false);
+  let photos: Photo[] = $state([]);
 
   const handleLockIn = async () => {
     lockedIn = true;
   };
+
+  const loadPhotos = async () => {
+    const { data, error } = await supabase
+      .from("photos")
+      .select("id, storage_path, lat, long, status")
+      .eq("status", "approved");
+
+    if (error) {
+      toast(error.message, "error");
+      return;
+    } else if (!data) {
+      toast("No photos :(", "error");
+      return;
+    }
+
+    for (let i = 0; i < imageCount; i++) {
+      photos[i] = data[Math.floor(Math.random() * imageCount)];
+    }
+  };
+
+  onMount(() => {
+    loadPhotos();
+  });
 </script>
 
 <div class="flex flex-col flex-1 p-2 gap-2">
