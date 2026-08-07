@@ -1,30 +1,16 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { supabase } from "$lib/supabaseClient";
-  import {
-    extractGps,
-    uploadPhoto,
-    type Gps,
-  } from "$lib/functions/photoUpload";
-  import { toast } from "$lib/components/ui/toast/toast.svelte";
+  import { extractGps, uploadPhoto } from "$lib/functions/photoUpload";
+  import { toast } from "$lib/components/toast/toast.svelte";
   import { Save, Trash } from "@lucide/svelte";
-
-  type Photo = {
-    id: string;
-    storage_path: string;
-    lat: number | null;
-    long: number | null;
-    comment?: string;
-    status: "pending" | "approved" | "rejected";
-    created_at: string;
-    thumbUrl?: string | null;
-  };
+  import type { Gps, Photo } from "../../consts";
 
   let photos = $state<Photo[]>([]);
   let selected = $state<Photo | null>(null);
   let previewUrl = $state<string | null>(null);
   let pendingFile = $state<File | null>(null);
-  let gps: Gps = $state({ lat: null, long: null });
+  let gps: Gps = $state({ lat: 0, lng: 0 });
   let comment: string | null = $state(null);
   let uploading = $state(false);
 
@@ -36,7 +22,7 @@
 
     const { data, error } = await supabase
       .from("photos")
-      .select("id, storage_path, lat, long, status, comment, created_at")
+      .select("id, storage_path, lat, lng, status, comment, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -68,7 +54,7 @@
     if (gpsData) {
       gps = gpsData;
     } else {
-      gps = { lat: null, long: null };
+      gps = { lat: 0, lng: 0 };
     }
     previewUrl = URL.createObjectURL(file);
     selected = null;
@@ -77,7 +63,7 @@
   async function submitUpload() {
     if (!pendingFile) return;
 
-    if (!gps?.lat || !gps?.long) {
+    if (!gps?.lat || !gps?.lng) {
       toast("Add coordinates to submit", "error");
       return;
     }
@@ -107,14 +93,14 @@
     if (!selected) return;
 
     if (!selected.lat || isNaN(selected.lat)) {
-      if (!selected.long || isNaN(selected.long)) {
-        toast("Invalid latitude and longitude", "error");
+      if (!selected.lng || isNaN(selected.lng)) {
+        toast("Invalid latitude and lngitude", "error");
         return;
       }
       toast("Invalid latitude", "error");
       return;
-    } else if (!selected.long || isNaN(selected.long)) {
-      toast("Invalid longitude", "error");
+    } else if (!selected.lng || isNaN(selected.lng)) {
+      toast("Invalid lngitude", "error");
       return;
     }
 
@@ -122,7 +108,7 @@
       .from("photos")
       .update({
         lat: selected.lat,
-        long: selected.long,
+        lng: selected.lng,
         comment: selected.comment,
         updated_at: new Date().toISOString(),
       })
@@ -231,13 +217,13 @@
                   />
                 </label>
                 <label class="floating-label flex-1">
-                  <span>Longitude</span>
+                  <span>lngitude</span>
                   <input
                     class="input input-bordered input-sm"
                     type="number"
                     step="any"
-                    placeholder="Longitude"
-                    bind:value={selected.long}
+                    placeholder="lngitude"
+                    bind:value={selected.lng}
                     required
                   />
                 </label>
@@ -264,13 +250,13 @@
                   />
                 </label>
                 <label class="floating-label flex-1">
-                  <span>Longitude</span>
+                  <span>lngitude</span>
                   <input
                     class="input input-bordered input-sm"
                     type="number"
                     step="any"
-                    placeholder="Longitude"
-                    bind:value={gps.long}
+                    placeholder="lngitude"
+                    bind:value={gps.lng}
                     required
                   />
                 </label>

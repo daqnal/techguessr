@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { supabase } from "../../supabaseClient";
+  import { supabase } from "../supabaseClient";
   import { Settings, User } from "@lucide/svelte";
-  import Avatar from "../auth/Avatar.svelte";
+  import Avatar from "./auth/Avatar.svelte";
   import { onMount } from "svelte";
   import { page } from "$app/state";
 

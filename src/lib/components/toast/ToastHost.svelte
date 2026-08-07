@@ -1,9 +1,5 @@
 <script lang="ts">
-  import {
-    toastState,
-    dismissToast,
-    type ToastType,
-  } from "$lib/components/ui/toast/toast.svelte";
+  import { toastState, dismissToast, type ToastType } from "./toast.svelte";
   import { X } from "@lucide/svelte";
 
   const alertClass: Record<ToastType, string> = {

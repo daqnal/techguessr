@@ -1,16 +1,15 @@
 import imageCompression from "browser-image-compression";
 import exifr from "exifr";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { toast } from "$lib/components/ui/toast/toast.svelte";
-
-export type Gps = { lat: number | null; long: number | null } | null;
+import type { Gps } from "../../consts";
+import { toast } from "$lib/components/toast/toast.svelte";
 
 export async function extractGps(file: File): Promise<Gps> {
   try {
     const gps = await exifr.gps(file);
 
     if (gps?.latitude != null && gps?.longitude != null) {
-      return { lat: gps.latitude, long: gps.longitude };
+      return { lat: gps.latitude, lng: gps.longitude };
     } else {
       toast("No GPS data detected — add coordinates in manually", "info");
     }
@@ -61,7 +60,7 @@ export async function uploadPhoto(
     user_id: userId,
     storage_path: path,
     lat: gps?.lat ?? null,
-    long: gps?.long ?? null,
+    lng: gps?.lng ?? null,
     status: "pending",
     comment: comment,
   });

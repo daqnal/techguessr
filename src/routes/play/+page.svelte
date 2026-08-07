@@ -1,16 +1,19 @@
 <script lang="ts">
-  import { toast } from "$lib/components/ui/toast/toast.svelte";
+  import { toast } from "$lib/components/toast/toast.svelte";
   import { supabase } from "$lib/supabaseClient";
   import { X, Map, Lock, LocateFixed } from "@lucide/svelte";
   import { onMount, onDestroy } from "svelte";
-  import { LngLat, LngLatBounds, Map as MapLibre, Marker } from "maplibre-gl";
+  // import { LngLat, LngLatBounds, Map as MapLibre, Marker } from "maplibre-gl";
+  import * as ml from "maplibre-gl";
   import "maplibre-gl/dist/maplibre-gl.css";
+  import "./map.css";
+  import calculateResults from "$lib/functions/calculateResults";
 
   type Photo = {
     id: string;
     storage_path: string;
     lat: number | null;
-    long: number | null;
+    lng: number | null;
     status: "pending" | "approved" | "rejected";
     publicUrl?: string | null;
   };
@@ -30,39 +33,37 @@
   let last = { x: 0, y: 0 };
   let frame: HTMLDivElement | undefined = $state();
 
-  let mapContainer: HTMLDivElement;
-  let map: MapLibre | undefined;
-  let marker: Marker | undefined;
-  let guess = $state<LngLat | null>(null);
+  let mapGuessContainer: HTMLDivElement;
+  let mapScoreContainer: HTMLDivElement;
+  let map: ml.Map | undefined;
+  let guessMarker: ml.Marker | undefined;
+  let answerMarker: ml.Marker | undefined;
+  let guess: ml.LngLat = $state<ml.LngLat>(new ml.LngLat(0, 0));
+
+  let dist: number | undefined = $state();
+  let score: number | undefined = $state();
 
   const MIN = 1;
   const MAX = 4;
 
-  const CAMPUS_CENTER: LngLat = new LngLat(
-    -84.39794899041351,
-    33.7779439355854,
-  );
-  const CAMPUS_NE_BOUND: LngLat = new LngLat(
+  const CAMPUS_CENTER: ml.LngLat = new ml.LngLat(-84.398815, 33.776099);
+  const CAMPUS_NE_BOUND: ml.LngLat = new ml.LngLat(
     -84.3831385540561,
     33.79079208919991,
   );
-  const CAMPUS_SW_BOUND: LngLat = new LngLat(
+  const CAMPUS_SW_BOUND: ml.LngLat = new ml.LngLat(
     -84.41193287304678,
     33.761922412793176,
   );
-  const CAMPUS_BOUNDS: LngLatBounds = new LngLatBounds(
+  const CAMPUS_BOUNDS: ml.LngLatBounds = new ml.LngLatBounds(
     CAMPUS_SW_BOUND,
     CAMPUS_NE_BOUND,
   );
 
-  const handleLockIn = async () => {
-    lockedIn = true;
-  };
-
   const loadPhotos = async () => {
     const { data, error } = await supabase
       .from("photos")
-      .select("id, storage_path, lat, long, status")
+      .select("id, storage_path, lat, lng, status")
       .eq("status", "approved");
 
     if (error) {
@@ -135,11 +136,55 @@
     y = 0;
   }
 
+  function handleMapToggle() {
+    mapOpen = !mapOpen;
+    requestAnimationFrame(() => map?.resize());
+  }
+
+  const handleLockIn = async () => {
+    lockedIn = true;
+    if (mapOpen) handleMapToggle();
+    map?.remove();
+
+    map = new ml.Map({
+      container: mapScoreContainer,
+      style: "https://tiles.openfreemap.org/styles/bright",
+      center: guess,
+      scrollZoom: false,
+      dragPan: false,
+      zoom: 15,
+      minZoom: 14,
+      maxZoom: 18,
+      maxBounds: CAMPUS_BOUNDS,
+    });
+
+    if (guessMarker) {
+      guessMarker.addTo(map!);
+    }
+
+    const answerCoordinates = new ml.LngLat(0, 0);
+    if (photos[currentPhotoIndex].lng && photos[currentPhotoIndex].lat) {
+      answerCoordinates.lng = photos[currentPhotoIndex].lng;
+      answerCoordinates.lat = photos[currentPhotoIndex].lat;
+    }
+
+    answerMarker = new ml.Marker({ color: "#f43098" })
+      .setLngLat(answerCoordinates)
+      .addTo(map!);
+
+    const results = calculateResults(guess, answerCoordinates);
+    dist = results.dist;
+    score = results.score;
+
+    console.log("Distance away: " + dist);
+    console.log("Score: " + score);
+  };
+
   onMount(() => {
     loadPhotos();
 
-    map = new MapLibre({
-      container: mapContainer,
+    map = new ml.Map({
+      container: mapGuessContainer,
       style: "https://tiles.openfreemap.org/styles/bright",
       center: CAMPUS_CENTER,
       zoom: 15,
@@ -151,13 +196,13 @@
     map?.on("click", (e) => {
       guess = e.lngLat;
 
-      if (!marker) {
-        marker = new Marker({ color: "#6366f1" }).setLngLat(guess).addTo(map!);
+      if (!guessMarker) {
+        guessMarker = new ml.Marker({ color: "#6366f1" })
+          .setLngLat(guess)
+          .addTo(map!);
       } else {
-        marker.setLngLat(guess);
+        guessMarker.setLngLat(guess);
       }
-
-      console.log(guess);
     });
   });
 
@@ -179,9 +224,7 @@
   {:else}
     <div
       class="flex-1 absolute inset-0 origin-top-left will-change-transform {scale !==
-      1
-        ? 'cursor-grab'
-        : ''}"
+        1 && 'cursor-grab'} {dragging && 'cursor-grabbing'}"
       style="transform: translate({x}px, {y}px) scale({scale})"
       onpointerdown={onPointerDown}
       onpointermove={onPointerMove}
@@ -197,59 +240,62 @@
     </div>
   {/if}
 
-  <div
-    class="absolute w-full bottom-0 left-0 flex p-2 gap-2 place-content-between"
-  >
-    <button
-      type="button"
-      class="btn btn-primary btn-wide z-20 shadow-lg {lockedIn || !guess
-        ? 'btn-disabled bg-base-200/75'
-        : ''}"
-      onclick={() => handleLockIn()}
+  {#if !lockedIn}
+    <div
+      class="absolute w-full bottom-0 left-0 flex p-2 gap-2 place-content-between"
     >
-      {#if lockedIn}
-        <span class="loading loading-spinner"></span>
-      {:else}
-        <Lock size={16} />
-        <span class="font-black">LOCK IT IN</span>
-      {/if}
-    </button>
-
-    <div class="flex gap-2 z-20">
-      <button
-        class="btn btn-circle btn-primary shadow-lg {scale === 1 &&
-        x === 0 &&
-        y === 0
-          ? 'btn-disabled'
-          : ''}"
-        onclick={resetView}
-      >
-        <LocateFixed />
-      </button>
-
       <button
         type="button"
-        class="btn btn-circle btn-primary shadow-lg"
-        onclick={() => {
-          mapOpen = !mapOpen;
-          requestAnimationFrame(() => map?.resize());
-        }}
+        class="btn btn-primary btn-wide z-20 shadow-lg {guess.lng === 0 &&
+          'btn-disabled bg-base-200/75'}"
+        onclick={() => handleLockIn()}
       >
-        {#if mapOpen}
-          <X />
-        {:else}
-          <Map />
-        {/if}
+        <Lock size={16} />
+        <span class="font-black">LOCK IT IN</span>
       </button>
+
+      <div class="flex gap-2 z-20">
+        {#if scale !== 1 || x !== 0 || y !== 0}
+          <button
+            class="btn btn-circle btn-primary shadow-lg"
+            onclick={resetView}
+          >
+            <LocateFixed />
+          </button>
+        {/if}
+
+        <button
+          type="button"
+          class="btn btn-circle btn-primary shadow-lg"
+          onclick={() => handleMapToggle()}
+        >
+          {#if mapOpen}
+            <X />
+          {:else}
+            <Map />
+          {/if}
+        </button>
+      </div>
     </div>
-  </div>
+  {/if}
 </div>
+
+<!-- Map -->
 <div
   class="fixed bottom-4 right-4 z-10 h-[min(50vh,22rem)] w-[min(90vw,24rem)]
-             overflow-hidden rounded-box bg-base-300 shadow-lg
+             overflow-hidden rounded-box bg-base-300 shadow-lg text-xs
              transition-transform duration-100 ease-out
              {mapOpen
     ? 'translate-x-0 translate-y-0'
     : 'translate-x-[calc(100%+1.5rem)] translate-y-[calc(100%+1.5rem)]'}"
-  bind:this={mapContainer}
+  bind:this={mapGuessContainer}
 ></div>
+
+<!-- Modal -->
+<dialog class="modal {lockedIn && 'modal-open'}" id="score-modal">
+  <div class="modal-box flex flex-col gap-2">
+    <div class="rounded-box h-64 w-full" bind:this={mapScoreContainer}></div>
+    <p class="text-7xl text-center font-black">{score}</p>
+    <div></div>
+  </div>
+</dialog>

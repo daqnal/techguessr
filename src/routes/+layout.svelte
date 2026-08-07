@@ -1,8 +1,8 @@
 <script lang="ts">
   import "./layout.css";
   import favicon from "$lib/assets/favicon.svg";
-  import Navbar from "$lib/components/ui/Navbar.svelte";
-  import ToastHost from "$lib/components/ui/toast/ToastHost.svelte";
+  import Navbar from "$lib/components/Navbar.svelte";
+  import ToastHost from "$lib/components/toast/ToastHost.svelte";
 
   let { children } = $props();
 </script>
