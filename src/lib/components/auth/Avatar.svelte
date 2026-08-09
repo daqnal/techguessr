@@ -95,10 +95,10 @@
 <div class="flex flex-col place-content-center place-items-center gap-4">
   {#if upload}
     {#if avatarUrl}
-      <img src={avatarUrl} alt="User's avatar" class="w-40 h-40" />
+      <img src={avatarUrl} alt="User's avatar" class="w-40 h-40 rounded-full" />
     {:else}
       <div
-        class={`bg-primary-content w-32 h-32 rounded-full flex place-content-center place-items-center`}
+        class="bg-primary-content w-32 h-32 rounded-full flex place-content-center place-items-center"
       >
         <span class="text-primary cursor-default pointer-events-none">
           <User size={16} />
@@ -111,7 +111,11 @@
       class="btn btn-primary btn-circle w-8 h-8 rounded-full p-0.5 tooltip tooltip-bottom"
       data-tip="Account"
     >
-      <img src={avatarUrl} alt="User's avatar" class="w-full h-full" />
+      <img
+        src={avatarUrl}
+        alt="User's avatar"
+        class="w-full h-full rounded-full"
+      />
     </a>
   {:else}
     <a

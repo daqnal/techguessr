@@ -21,7 +21,6 @@
   const imageCount = 5;
 
   let imageLoading: boolean = $state(true);
-  let mapOpen: boolean = $state(false);
   let lockedIn: boolean = $state(false);
   let photos: Photo[] = $state([]);
   let currentPhotoIndex: number = $state(0);
@@ -65,6 +64,8 @@
       .from("photos")
       .select("id, storage_path, lat, lng, status")
       .eq("status", "approved");
+
+    console.log(data);
 
     if (error) {
       toast(error.message, "error");
@@ -136,14 +137,8 @@
     y = 0;
   }
 
-  function handleMapToggle() {
-    mapOpen = !mapOpen;
-    requestAnimationFrame(() => map?.resize());
-  }
-
   const handleLockIn = async () => {
     lockedIn = true;
-    if (mapOpen) handleMapToggle();
     map?.remove();
 
     map = new ml.Map({
@@ -212,7 +207,7 @@
 </script>
 
 <div
-  class="flex-1 relative overflow-hidden rounded-box bg-base-200 touch-none"
+  class="relative flex-1 min-h-0 overflow-hidden touch-none"
   bind:this={frame}
   onwheel={onWheel}
 >
@@ -223,7 +218,7 @@
     </p>
   {:else}
     <div
-      class="flex-1 absolute inset-0 origin-top-left will-change-transform {scale !==
+      class="absolute inset-0 origin-top-left bg-base-200 will-change-transform {scale !==
         1 && 'cursor-grab'} {dragging && 'cursor-grabbing'}"
       style="transform: translate({x}px, {y}px) scale({scale})"
       onpointerdown={onPointerDown}
@@ -263,33 +258,16 @@
             <LocateFixed />
           </button>
         {/if}
-
-        <button
-          type="button"
-          class="btn btn-circle btn-primary shadow-lg"
-          onclick={() => handleMapToggle()}
-        >
-          {#if mapOpen}
-            <X />
-          {:else}
-            <Map />
-          {/if}
-        </button>
       </div>
     </div>
   {/if}
-</div>
 
-<!-- Map -->
-<div
-  class="fixed bottom-4 right-4 z-10 h-[min(50vh,22rem)] w-[min(90vw,24rem)]
-             overflow-hidden rounded-box bg-base-300 shadow-lg text-xs
-             transition-transform duration-100 ease-out
-             {mapOpen
-    ? 'translate-x-0 translate-y-0'
-    : 'translate-x-[calc(100%+1.5rem)] translate-y-[calc(100%+1.5rem)]'}"
-  bind:this={mapGuessContainer}
-></div>
+  <div
+    class="absolute bottom-0 right-0 w-[30vw] h-[30vh] bg-base-200 rounded-tl-box"
+  >
+    <div bind:this={mapGuessContainer} class="w-full h-full"></div>
+  </div>
+</div>
 
 <!-- Modal -->
 <dialog class="modal {lockedIn && 'modal-open'}" id="score-modal">

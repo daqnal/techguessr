@@ -6,18 +6,19 @@
 - Supabase Auth + Storage
 - Tailwind + daisyUI
 
-<!-- ## Development -->
-<!---->
-<!-- - Clone the repo -->
-<!-- ``` -->
-<!-- git clone https://github.com/daqnal/techguessr.git -->
-<!-- ``` -->
-<!-- - Install dependencies with your runtime of choice -->
-<!-- ``` -->
-<!-- bun install -->
-<!-- ``` -->
-<!-- - Install the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started) -->
-<!-- - Run `supabase start` and wait for Docker to download the whole internet -->
+## Development
+
+- Clone the repo and install dependencies
+
+```
+git clone https://github.com/daqnal/techguessr.git
+bun install
+```
+
+- Install the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)
+- Run `supabase start` and wait for Docker to download the whole internet
+  - Ensure that the docker service is running on your system (`systemctl start docker` for SoystemD)
+- Start the development server with `bun run dev`
 
 ## AI Disclosure
 

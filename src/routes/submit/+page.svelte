@@ -27,7 +27,7 @@
       .order("created_at", { ascending: false });
 
     if (error) {
-      toast(error.name, "error");
+      toast(error.message, "error");
       photos = [];
       return;
     }
