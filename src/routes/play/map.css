@@ -1,3 +1,7 @@
-.maplibregl-ctrl-attrib-button {
-  left: 0;
+.maplibregl-canvas-container.maplibregl-interactive {
+  cursor: crosshair;
+}
+
+.maplibregl-canvas {
+  border-radius: 1rem;
 }

@@ -8,6 +8,7 @@
   import "maplibre-gl/dist/maplibre-gl.css";
   import "./map.css";
   import calculateResults from "$lib/functions/calculateResults";
+  import Avatar from "$lib/components/auth/Avatar.svelte";
 
   type Photo = {
     id: string;
@@ -25,8 +26,6 @@
   let photos: Photo[] = $state([]);
   let currentPhotoIndex: number = $state(0);
 
-  let avatarUrl = $state<string | null>(null);
-
   let scale = $state(1);
   let x = $state(0);
   let y = $state(0);
@@ -38,11 +37,11 @@
   let mapScoreContainer: HTMLDivElement;
   let map: ml.Map | undefined;
   let guessMarker: ml.Marker | undefined;
+  let guessMarkerApp: ReturnType<typeof mount> | undefined;
   let answerMarker: ml.Marker | undefined;
   let guess: ml.LngLat = $state<ml.LngLat>(new ml.LngLat(0, 0));
 
   let dist: number | undefined = $state();
-  let midpoint: ml.LngLat | undefined = $state();
   let score: number | undefined = $state();
 
   const MIN = 1;
@@ -68,6 +67,8 @@
       .select("id, storage_path, lat, lng, status")
       .eq("status", "approved");
 
+    console.log(data);
+
     if (error) {
       toast(error.message, "error");
       return;
@@ -87,33 +88,6 @@
     }
 
     imageLoading = false;
-  };
-
-  const loadAvatar = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      avatarUrl = null;
-      return;
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("avatar_url")
-      .eq("id", user.id)
-      .single();
-
-    const { data, error } = await supabase.storage
-      .from("avatars")
-      .download(profile?.avatar_url);
-
-    if (error) {
-      console.error(error.message);
-    } else {
-      const url = URL.createObjectURL(data);
-      avatarUrl = url;
-    }
   };
 
   function onWheel(e: WheelEvent) {
@@ -169,21 +143,10 @@
     lockedIn = true;
     map?.remove();
 
-    const answerCoordinates = new ml.LngLat(0, 0);
-    if (photos[currentPhotoIndex].lng && photos[currentPhotoIndex].lat) {
-      answerCoordinates.lng = photos[currentPhotoIndex].lng;
-      answerCoordinates.lat = photos[currentPhotoIndex].lat;
-    }
-
-    const results = calculateResults(guess, answerCoordinates);
-    dist = results.dist;
-    midpoint = results.midpoint;
-    score = results.score;
-
     map = new ml.Map({
       container: mapScoreContainer,
       style: "https://tiles.openfreemap.org/styles/bright",
-      center: midpoint,
+      center: guess,
       scrollZoom: false,
       dragPan: false,
       zoom: 15,
@@ -192,54 +155,30 @@
       maxBounds: CAMPUS_BOUNDS,
     });
 
+    if (guessMarker) {
+      guessMarker.addTo(map!);
+    }
+
+    const answerCoordinates = new ml.LngLat(0, 0);
+    if (photos[currentPhotoIndex].lng && photos[currentPhotoIndex].lat) {
+      answerCoordinates.lng = photos[currentPhotoIndex].lng;
+      answerCoordinates.lat = photos[currentPhotoIndex].lat;
+    }
+
     answerMarker = new ml.Marker({ color: "#f43098" })
       .setLngLat(answerCoordinates)
       .addTo(map!);
 
-    setGuessMarker(guess);
+    const results = calculateResults(guess, answerCoordinates);
+    dist = results.dist;
+    score = results.score;
 
     console.log("Distance away: " + dist);
     console.log("Score: " + score);
   };
 
-  const setGuessMarker = (lngLat: ml.LngLat) => {
-    if (!map) return;
-
-    guessMarker?.remove();
-    const el = document.createElement("div");
-    el.classList.add(
-      "w-8",
-      "h-8",
-      "rounded-full",
-      "border-primary",
-      "border-2",
-      "flex",
-      "place-content-center",
-      "place-items-center",
-    );
-
-    if (avatarUrl) {
-      const img = document.createElement("img");
-      img.src = avatarUrl;
-      img.alt = "Your guess";
-      img.draggable = false;
-      img.classList.add("w-7", "h-7", "rounded-full");
-      el.appendChild(img);
-    } else {
-      el.classList.add("bg-primary/75");
-    }
-
-    guessMarker = new ml.Marker({
-      element: el,
-      anchor: "center",
-    })
-      .setLngLat(lngLat)
-      .addTo(map!);
-  };
-
   onMount(() => {
     loadPhotos();
-    loadAvatar();
 
     map = new ml.Map({
       container: mapGuessContainer,
@@ -253,7 +192,19 @@
 
     map?.on("click", (e) => {
       guess = e.lngLat;
-      setGuessMarker(guess);
+
+      if (!guessMarker) {
+        const el = document.createElement("div");
+        el.className = "border-2";
+      }
+
+      if (!guessMarker) {
+        guessMarker = new ml.Marker({ color: "#6366f1" })
+          .setLngLat(guess)
+          .addTo(map!);
+      } else {
+        guessMarker.setLngLat(guess);
+      }
     });
   });
 
