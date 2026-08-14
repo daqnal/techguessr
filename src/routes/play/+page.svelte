@@ -1,13 +1,13 @@
 <script lang="ts">
   import { toast } from "$lib/components/toast/toast.svelte";
   import { supabase } from "$lib/supabaseClient";
-  import { Lock, LocateFixed } from "@lucide/svelte";
-  import { onMount, onDestroy, mount, unmount } from "svelte";
-  // import { LngLat, LngLatBounds, Map as MapLibre, Marker } from "maplibre-gl";
+  import { Lock, ChevronRight, ScrollText } from "@lucide/svelte";
+  import { onMount, onDestroy, tick } from "svelte";
   import * as ml from "maplibre-gl";
   import "maplibre-gl/dist/maplibre-gl.css";
   import "./map.css";
   import calculateResults from "$lib/functions/calculateResults";
+  import Results from "./Results.svelte";
 
   type Photo = {
     id: string;
@@ -18,7 +18,7 @@
     publicUrl?: string | null;
   };
 
-  const imageCount = 5;
+  const IMAGE_COUNT = 5;
 
   let imageLoading: boolean = $state(true);
   let lockedIn: boolean = $state(false);
@@ -42,11 +42,11 @@
   let guess: ml.LngLat = $state<ml.LngLat>(new ml.LngLat(0, 0));
 
   let dist: number | undefined = $state();
-  let midpoint: ml.LngLat | undefined = $state();
   let score: number | undefined = $state();
 
-  const MIN = 1;
-  const MAX = 4;
+  let showResults: boolean = $state(false);
+
+  const MAP_STYLE_URL: string = "https://tiles.openfreemap.org/styles/bright";
 
   const CAMPUS_CENTER: ml.LngLat = new ml.LngLat(-84.398815, 33.776099);
   const CAMPUS_NE_BOUND: ml.LngLat = new ml.LngLat(
@@ -76,7 +76,7 @@
       return;
     }
 
-    for (let i = 0; i < imageCount; i++) {
+    for (let i = 0; i < IMAGE_COUNT; i++) {
       const photo = data[Math.floor(Math.random() * data.length)];
 
       const { data: pubData } = supabase.storage
@@ -87,6 +87,44 @@
     }
 
     imageLoading = false;
+  };
+
+  const handleNextPhoto = async () => {
+    currentPhotoIndex++;
+    guess = new ml.LngLat(0, 0);
+    lockedIn = false;
+
+    await tick();
+
+    requestAnimationFrame(() => {
+      initGuessMap();
+      map?.resize();
+    });
+  };
+
+  const destroyMap = () => {
+    map?.remove();
+    map = undefined;
+    guessMarker = undefined;
+  };
+
+  const initGuessMap = () => {
+    destroyMap();
+
+    map = new ml.Map({
+      container: mapGuessContainer,
+      style: MAP_STYLE_URL,
+      center: CAMPUS_CENTER,
+      zoom: 15,
+      minZoom: 14,
+      maxZoom: 18,
+      maxBounds: CAMPUS_BOUNDS,
+    });
+
+    map?.on("click", (e) => {
+      guess = e.lngLat;
+      setGuessMarker(guess);
+    });
   };
 
   const loadAvatar = async () => {
@@ -126,8 +164,8 @@
 
     const prev = scale;
     const next = Math.min(
-      MAX,
-      Math.max(MIN, scale * (e.deltaY < 0 ? 1.12 : 1 / 1.12)),
+      4,
+      Math.max(1, scale * (e.deltaY < 0 ? 1.12 : 1 / 1.12)),
     );
 
     // zoom toward cursor
@@ -159,44 +197,76 @@
     dragging = false;
   }
 
-  function resetView() {
-    scale = 1;
-    x = 0;
-    y = 0;
-  }
-
   const handleLockIn = async () => {
     lockedIn = true;
-    map?.remove();
+    destroyMap();
 
-    const answerCoordinates = new ml.LngLat(0, 0);
+    const answer = new ml.LngLat(0, 0);
     if (photos[currentPhotoIndex].lng && photos[currentPhotoIndex].lat) {
-      answerCoordinates.lng = photos[currentPhotoIndex].lng;
-      answerCoordinates.lat = photos[currentPhotoIndex].lat;
+      answer.lng = photos[currentPhotoIndex].lng || 0;
+      answer.lat = photos[currentPhotoIndex].lat || 0;
     }
 
-    const results = calculateResults(guess, answerCoordinates);
+    const results = calculateResults(guess, answer);
     dist = results.dist;
-    midpoint = results.midpoint;
     score = results.score;
 
     map = new ml.Map({
       container: mapScoreContainer,
-      style: "https://tiles.openfreemap.org/styles/bright",
-      center: midpoint,
-      scrollZoom: false,
-      dragPan: false,
+      style: MAP_STYLE_URL,
+      center: guess,
       zoom: 15,
       minZoom: 14,
       maxZoom: 18,
       maxBounds: CAMPUS_BOUNDS,
     });
 
-    answerMarker = new ml.Marker({ color: "#f43098" })
-      .setLngLat(answerCoordinates)
-      .addTo(map!);
+    map.on("load", () => {
+      answerMarker = new ml.Marker({ color: "#f43098" })
+        .setLngLat(answer)
+        .addTo(map!);
 
-    setGuessMarker(guess);
+      setGuessMarker(guess);
+
+      map!.addSource("guess-line", {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "LineString",
+            coordinates: [
+              [guess.lng, guess.lat],
+              [answer.lng, answer.lat],
+            ],
+          },
+        },
+      });
+
+      map!.addLayer({
+        id: "guess-line-layer",
+        type: "line",
+        source: "guess-line",
+        layout: {
+          "line-cap": "round",
+          "line-join": "round",
+        },
+        paint: {
+          "line-color": "#f43098",
+          "line-width": 3,
+          "line-opacity": 0.9,
+        },
+      });
+
+      const bounds = new ml.LngLatBounds(guess, guess);
+      bounds.extend(answer);
+
+      map!.fitBounds(bounds, {
+        padding: { top: 48, bottom: 48, left: 48, right: 48 },
+        maxZoom: 17,
+        duration: 1000,
+      });
+    });
 
     console.log("Distance away: " + dist);
     console.log("Score: " + score);
@@ -212,7 +282,7 @@
       "h-8",
       "rounded-full",
       "border-primary",
-      "border-2",
+      "border-3",
       "flex",
       "place-content-center",
       "place-items-center",
@@ -243,7 +313,7 @@
 
     map = new ml.Map({
       container: mapGuessContainer,
-      style: "https://tiles.openfreemap.org/styles/bright",
+      style: MAP_STYLE_URL,
       center: CAMPUS_CENTER,
       zoom: 15,
       minZoom: 14,
@@ -262,75 +332,100 @@
   });
 </script>
 
-<div
-  class="relative flex-1 min-h-0 overflow-hidden touch-none"
-  bind:this={frame}
->
-  {#if imageLoading}
-    <p class="h-full text-center place-content-center">
-      <span class="loading loading-spinner loading-xl"></span>
-      <span class="block text-lg mt-4">Next location loading...</span>
-    </p>
-  {:else}
-    <div
-      class="absolute inset-0 origin-top-left will-change-transform {scale !==
-        1 && 'cursor-grab'} {dragging && 'cursor-grabbing'}"
-      style="transform: translate({x}px, {y}px) scale({scale})"
-      onpointerdown={onPointerDown}
-      onpointermove={onPointerMove}
-      onpointerup={onPointerUp}
-      onpointercancel={onPointerUp}
-      role="presentation"
-      onwheel={onWheel}
-    >
-      <img
-        src={photos[0].publicUrl}
-        alt="Check internet connection 👌"
-        class="w-full h-full object-contain select-none pointer-events-none"
-      />
-    </div>
-  {/if}
-
-  {#if !lockedIn}
-    <div
-      class="absolute w-full bottom-0 left-0 flex p-2 gap-2 place-content-between"
-    >
-      <div class="flex gap-2 z-20">
-        {#if scale !== 1 || x !== 0 || y !== 0}
-          <button
-            class="btn btn-circle btn-primary shadow-lg"
-            onclick={resetView}
-          >
-            <LocateFixed />
-          </button>
-        {/if}
-      </div>
+{#if showResults}
+  <Results />
+{:else}
+  <div
+    class="relative flex-1 min-h-0 overflow-hidden touch-none"
+    bind:this={frame}
+  >
+    {#if imageLoading}
+      <p class="h-full text-center place-content-center">
+        <span class="loading loading-spinner loading-xl"></span>
+        <span class="block text-lg mt-4">Next location loading...</span>
+      </p>
+    {:else}
       <div
-        class="flex flex-col gap-2 w-[20vw] h-[30vh] hover:w-[30vw] hover:h-[45vh]"
+        class="absolute inset-0 origin-top-left will-change-transform {scale !==
+          1 && 'cursor-grab'} {dragging && 'cursor-grabbing'}"
+        style="transform: translate({x}px, {y}px) scale({scale})"
+        onpointerdown={onPointerDown}
+        onpointermove={onPointerMove}
+        onpointerup={onPointerUp}
+        onpointercancel={onPointerUp}
+        role="presentation"
+        onwheel={onWheel}
       >
-        <div
-          bind:this={mapGuessContainer}
-          class="flex-1 w-full rounded-box hover:rounded-box"
-        ></div>
-        <button
-          type="button"
-          class="btn btn-primary w-full z-20 shadow-lg {guess.lng === 0 &&
-            'btn-disabled bg-base-200/75'}"
-          onclick={() => handleLockIn()}
-        >
-          <Lock size={16} />
-          <span class="font-black">LOCK IT IN</span>
-        </button>
+        <img
+          src={photos[currentPhotoIndex].publicUrl}
+          alt="Check internet connection 👌"
+          class="w-full h-full object-contain select-none pointer-events-none"
+        />
       </div>
-    </div>
-  {/if}
-</div>
+    {/if}
 
-<!-- Modal -->
-<dialog class="modal {lockedIn && 'modal-open'}" id="score-modal">
-  <div class="modal-box flex flex-col gap-2">
-    <div class="rounded-box h-64 w-full" bind:this={mapScoreContainer}></div>
-    <p class="text-7xl text-center font-black">{score}</p>
-    <div></div>
+    {#if !lockedIn}
+      <div
+        class="absolute w-full h-full flex flex-col gap-2 place-content-between pointer-events-none"
+      >
+        <div class="flex pl-2">
+          <ul class="steps steps-vertical">
+            {#each { length: IMAGE_COUNT }, i}
+              <li class="step {currentPhotoIndex > i && 'step-success'}"></li>
+            {/each}
+          </ul>
+        </div>
+
+        <div class="w-full flex place-content-end p-2">
+          <div
+            class="flex flex-col gap-2 w-[25vw] h-[30vh] hover:w-[35vw] hover:h-[45vh] pointer-events-auto"
+          >
+            <div
+              id="map-guess-container"
+              bind:this={mapGuessContainer}
+              class="flex-1 w-full rounded-box hover:rounded-box"
+            ></div>
+            <button
+              type="button"
+              class="btn btn-success w-full z-20 shadow-lg {guess.lng === 0 &&
+                'btn-disabled bg-success/50'}"
+              onclick={() => handleLockIn()}
+            >
+              <Lock size={16} />
+              <span class="font-black">LOCK IT IN</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    {/if}
   </div>
-</dialog>
+
+  <!-- Modal -->
+  <dialog class="modal {lockedIn && 'modal-open'}" id="score-modal">
+    <div class="modal-box flex flex-col gap-2">
+      <div class="rounded-box h-64 w-full" bind:this={mapScoreContainer}></div>
+      <div class="text-center">
+        <p class="text-7xl font-black my-4">{score}</p>
+        <p>Your guess was {dist ? Math.round(dist) : 0}m away!</p>
+      </div>
+      {#if currentPhotoIndex != 4}
+        <div class="flex place-content-end">
+          <button class="btn btn-primary" onclick={handleNextPhoto}>
+            <span>Next</span>
+            <ChevronRight />
+          </button>
+        </div>
+      {:else}
+        <div class="flex place-content-center">
+          <button
+            class="btn btn-primary btn-wide"
+            onclick={() => (showResults = true)}
+          >
+            <ScrollText />
+            <span>Results</span>
+          </button>
+        </div>
+      {/if}
+    </div>
+  </dialog>
+{/if}

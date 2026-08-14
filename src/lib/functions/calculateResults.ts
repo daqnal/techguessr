@@ -19,32 +19,33 @@ export default function calculateResults(guess: Gps, ans: Gps): Result {
   const toRad = (d: number) => (d * Math.PI) / 180;
   const toDeg = (r: number) => (r * 180) / Math.PI;
 
-  const φ1 = toRad(guess.lat);
-  const λ1 = toRad(guess.lng);
-  const φ2 = toRad(ans.lat);
-  const λ2 = toRad(ans.lng);
+  const phi1 = toRad(guess.lat);
+  const lambda1 = toRad(guess.lng);
+  const phi2 = toRad(ans.lat);
+  const lambda2 = toRad(ans.lng);
 
-  const Δφ = φ2 - φ1;
-  const Δλ = λ2 - λ1;
+  const deltaPhi = phi2 - phi1;
+  const deltaLambda = lambda2 - lambda1;
 
   // Haversine formula
   const R = 6371e3;
   const a =
-    Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+    Math.sin(deltaPhi / 2) ** 2 +
+    Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const dist = R * c;
 
   // Calculate midpoint
-  const Bx = Math.cos(φ2) * Math.cos(Δλ);
-  const By = Math.cos(φ2) * Math.sin(Δλ);
+  const Bx = Math.cos(phi2) * Math.cos(deltaLambda);
+  const By = Math.cos(phi2) * Math.sin(deltaLambda);
 
-  const φ3 = Math.atan2(
-    Math.sin(φ1) + Math.sin(φ2),
-    Math.sqrt((Math.cos(φ1) + Bx) ** 2 + By ** 2),
+  const phi3 = Math.atan2(
+    Math.sin(phi1) + Math.sin(phi2),
+    Math.sqrt((Math.cos(phi1) + Bx) ** 2 + By ** 2),
   );
-  const λ3 = λ1 + Math.atan2(By, Math.cos(φ1) + Bx);
+  const lambda3 = lambda1 + Math.atan2(By, Math.cos(phi1) + Bx);
 
-  const midpoint = new LngLat(toDeg(λ3), toDeg(φ3));
+  const midpoint = new LngLat(toDeg(lambda3), toDeg(phi3));
 
   // Calculate score
   const fivek = 5; // 5m and under should be a 5K
@@ -59,8 +60,6 @@ export default function calculateResults(guess: Gps, ans: Gps): Result {
   } else if (dist >= zero) {
     score = 0;
   }
-
-  console.log(midpoint);
 
   return { dist, midpoint, score };
 }
