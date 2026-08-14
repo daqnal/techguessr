@@ -5,6 +5,13 @@
   import ToastHost from "$lib/components/toast/ToastHost.svelte";
 
   let { children } = $props();
+
+  try {
+    const t = localStorage.getItem("themeId");
+    if (t) {
+      document.documentElement.setAttribute("data-theme", t);
+    }
+  } catch (_) {}
 </script>
 
 <svelte:head

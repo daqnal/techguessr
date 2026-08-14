@@ -332,6 +332,10 @@
   });
 </script>
 
+<svelte:head>
+  <title>TechGuessr - Play</title>
+</svelte:head>
+
 {#if showResults}
   <Results />
 {:else}

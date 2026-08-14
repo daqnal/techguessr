@@ -1,5 +1,3 @@
-export type Gps = { lat: number; lng: number } | null;
-
 export type Photo = {
   id: string;
   storage_path: string;
@@ -10,3 +8,13 @@ export type Photo = {
   created_at: string;
   thumbUrl?: string | null;
 };
+
+export type Theme = {
+  id: string;
+  name: string;
+};
+
+export const themes: Theme[] = [
+  { id: "tokyonight", name: "Tokyo Night" },
+  { id: "emerald", name: "Emerald" },
+];

@@ -1,9 +1,8 @@
 @plugin "daisyui/theme" {
   name: "tokyonight";
   default: true;
-  /* prefersdark: true; */
-  /* color-scheme: "dark"; */
-
+  prefersdark: true;
+  color-scheme: "dark";
   --color-base-100: oklch(22.629% 0.021 280.487);
   --color-base-200: oklch(20.398% 0.016 284.91);
   --color-base-300: oklch(17.491% 0.008 285.52);

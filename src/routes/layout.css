@@ -1,7 +1,42 @@
 @import "tailwindcss";
+
+@import "../../src/lib/themes/rosepine.css";
 @import "../../src/lib/themes/tokyonight.css";
+@import "../../src/lib/themes/catppuccin.css";
+@import "../../src/lib/themes/everforest.css";
+@import "../../src/lib/themes/gruvbox.css";
+@import "../../src/lib/themes/kanagawa.css";
+@import "../../src/lib/themes/monokai.css";
+@import "../../src/lib/themes/andromeda.css";
+@import "../../src/lib/themes/ayudark.css";
+@import "../../src/lib/themes/nightfox.css";
+@import "../../src/lib/themes/nightowl.css";
+@import "../../src/lib/themes/onedarkpro.css";
+@import "../../src/lib/themes/solarized.css";
+@import "../../src/lib/themes/flexoki.css";
+
 @plugin "daisyui" {
-  themes: tokyonight --default;
+  themes:
+    tokyonight --default,
+    rosepine,
+    catppuccin,
+    gruvbox,
+    kanagawa,
+    everforest,
+    monokai,
+    andromeda,
+    ayudark,
+    nightfox,
+    nightowl,
+    onedarkpro,
+    solarized,
+    flexoki,
+    emerald,
+    synthwave,
+    nord,
+    dracula,
+    sunset,
+    winter;
 }
 @import "@fontsource-variable/outfit/wght.css";
 
