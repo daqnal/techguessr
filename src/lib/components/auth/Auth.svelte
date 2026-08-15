@@ -18,6 +18,7 @@
         password,
       });
       if (error) throw error;
+      localStorage.setItem("loggedIn", "true");
     } catch (error) {
       if (error instanceof Error) {
         authError = error.message;

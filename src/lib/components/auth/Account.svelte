@@ -3,6 +3,7 @@
   import type { AuthSession } from "@supabase/supabase-js";
   import { supabase } from "../../supabaseClient";
   import Avatar from "./Avatar.svelte";
+  import { toast } from "../toast/toast.svelte";
 
   interface Props {
     session: AuthSession;
@@ -73,6 +74,12 @@
     loading = true;
     const { error } = await supabase.auth.signOut();
     loading = false;
+    if (error) {
+      toast("Error signing out", "error");
+    } else {
+      toast("Signed out successfully", "success");
+      localStorage.setItem("loggedIn", "false");
+    }
   };
 </script>
 

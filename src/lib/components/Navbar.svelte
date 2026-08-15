@@ -13,6 +13,7 @@
       data: { user },
     } = await supabase.auth.getUser();
     loggedIn = !!user;
+    localStorage.setItem("loggedIn", loggedIn ? "true" : "false");
     if (!user) {
       avatarPath = null;
       return;

@@ -1,15 +1,14 @@
 <script lang="ts">
-  import { ChevronDown } from "@lucide/svelte";
+  import { toast } from "$lib/components/toast/toast.svelte";
+  import { supabase } from "$lib/supabaseClient";
   import { themes, type Theme } from "../../consts";
   import SettingsOption from "./SettingsOption.svelte";
   import { onMount } from "svelte";
 
-  const defaultSettings = {
-    theme: "tokyonight",
-    unitSystem: "metric",
-  };
+  let loggedIn = $state(false);
 
-  let currTheme: Theme = $state({ id: "loading", name: "Loading" });
+  let currTheme: Theme = $state({ id: "tokyonight", name: "Tokyo Night" });
+  let currUnitSystem: string = $state("metric");
 
   const handleThemeChange = (newTheme: Theme) => {
     localStorage.setItem("themeId", newTheme.id);
@@ -17,9 +16,96 @@
     currTheme = newTheme;
   };
 
-  onMount(() => {
-    currTheme.id = localStorage.getItem("themeId")!;
-    currTheme.name = localStorage.getItem("themeName")!;
+  const handleUnitSystemChange = (newUnitSystem: string) => {
+    localStorage.setItem("unitSystem", newUnitSystem);
+    currUnitSystem = newUnitSystem;
+  };
+
+  const handleSaveSettings = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      toast("User is not logged in", "error");
+      return;
+    }
+
+    const { error } = await supabase.from("settings").upsert({
+      id: user.id,
+      theme: currTheme.id,
+      unit_system: currUnitSystem,
+      updated_at: new Date().toISOString(),
+    });
+
+    if (error) {
+      toast(error.message, "error");
+      return;
+    } else {
+      toast("Settings saved successfully", "success");
+    }
+  };
+
+  onMount(async () => {
+    // Check if logged in
+    const localStorageLoggedIn = localStorage.getItem("loggedIn");
+    loggedIn = localStorageLoggedIn === "true";
+
+    // Only load from backend if logged in, else load from localStorage
+    if (loggedIn) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        toast("User is not logged in", "error");
+        return;
+      }
+
+      const { error, data } = await supabase
+        .from("settings")
+        .select("theme, unit_system")
+        .eq("id", user.id)
+        .single();
+
+      if (error) {
+        toast(error.message, "error");
+        return;
+      }
+
+      // Set theme
+      const matchedTheme: Theme | undefined = themes.find((el) => {
+        if (el.id == data.theme) return el;
+      });
+
+      currTheme.id = matchedTheme?.id ?? currTheme.id;
+      currTheme.name = matchedTheme?.name ?? currTheme.name;
+
+      localStorage.setItem("themeId", currTheme.id);
+      localStorage.setItem("themeName", currTheme.name);
+
+      // Set unit system
+      currUnitSystem = data.unit_system;
+      localStorage.setItem("unitSystem", currUnitSystem);
+    } else {
+      // Load theme
+      const themeId = localStorage.getItem("themeId")!;
+      const themeName = localStorage.getItem("themeName")!;
+      if (!themeId || !themeName) {
+        localStorage.setItem("themeId", themes[0].id);
+        localStorage.setItem("themeName", themes[0].name);
+      }
+
+      currTheme.id = themes[0].id;
+      currTheme.name = themes[0].name;
+
+      // Load unit system
+      const unitSystem = localStorage.getItem("unitSystem");
+      if (unitSystem) {
+        currUnitSystem = unitSystem;
+      } else {
+        currUnitSystem = "metric";
+        localStorage.setItem("unitSystem", "metric");
+      }
+    }
   });
 </script>
 
@@ -28,56 +114,54 @@
     <h1 class="tracking-wider text-4xl font-bold text-center mt-4">Settings</h1>
 
     <div
-      class="flex max-h-4/5 flex-col gap-4 bg-base-200 rounded-box overflow-y-auto"
+      class="flex max-h-4/5 flex-col gap-4 bg-base-200 rounded-box overflow-y-auto p-4"
     >
       <SettingsOption name="Theme">
-        <div class="dropdown dropdown-end">
-          <div tabindex="0" role="button" class="btn btn-soft">
-            <span>{currTheme.name}</span>
-            <ChevronDown size={12} />
-          </div>
-
-          <ul
-            tabindex="-1"
-            class="dropdown-content bg-base-300 rounded-box z-1 w-52 p-2 shadow-2xl flex flex-col gap-1"
-          >
-            {#each themes as theme}
-              <li>
-                <input
-                  type="radio"
-                  name="theme-dropdown"
-                  class="theme-controller w-full btn btn-sm btn-block btn-ghost justify-start"
-                  aria-label={theme.name}
-                  value={theme.id}
-                  onclick={() => handleThemeChange(theme)}
-                  checked={currTheme.id === theme.id}
-                />
-              </li>
-            {/each}
-          </ul>
+        <div
+          class="w-full max-h-48 overflow-y-scroll join join-vertical rounded-box"
+        >
+          {#each themes as theme}
+            <input
+              type="radio"
+              name="theme-controller"
+              class="btn btn-soft theme-controller join-item"
+              aria-label={theme.name}
+              value={theme.id}
+              checked={theme.id === currTheme.id}
+              onclick={() => handleThemeChange(theme)}
+            />
+          {/each}
         </div>
       </SettingsOption>
 
       <SettingsOption name="Unit System">
-        <div class="join">
+        <div class="w-full join">
           <input
             type="radio"
             name="unit-join"
-            class="join-item btn btn-soft"
+            class="w-1/2 join-item btn btn-soft"
             aria-label="Metric"
+            checked={currUnitSystem === "metric"}
+            onclick={() => handleUnitSystemChange("metric")}
           />
           <input
             type="radio"
             name="unit-join"
-            class="join-item btn btn-soft"
+            class="w-1/2 join-item btn btn-soft"
             aria-label="Imperial"
+            checked={currUnitSystem === "imperial"}
+            onclick={() => handleUnitSystemChange("imperial")}
           />
         </div>
       </SettingsOption>
 
-      <div class="text-center text-sm mb-4">
-        <p>Looking for <a href="/auth" class="link">Account Settings</a>?</p>
-      </div>
+      {#if loggedIn}
+        <div class="flex place-content-end mt-4">
+          <button class="btn btn-success" onclick={handleSaveSettings}
+            >Save settings</button
+          >
+        </div>
+      {/if}
     </div>
   </div>
 </div>

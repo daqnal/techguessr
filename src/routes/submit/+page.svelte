@@ -4,13 +4,14 @@
   import { extractGps, uploadPhoto } from "$lib/functions/photoUpload";
   import { toast } from "$lib/components/toast/toast.svelte";
   import { Save, Trash } from "@lucide/svelte";
-  import type { Gps, Photo } from "../../consts";
+  import type { Photo } from "../../consts";
+  import { LngLat } from "maplibre-gl";
 
   let photos = $state<Photo[]>([]);
   let selected = $state<Photo | null>(null);
   let previewUrl = $state<string | null>(null);
   let pendingFile = $state<File | null>(null);
-  let gps: Gps = $state({ lat: 0, lng: 0 });
+  let gps: LngLat | null = $state(new LngLat(0, 0));
   let comment: string | null = $state(null);
   let uploading = $state(false);
 
@@ -54,7 +55,7 @@
     if (gpsData) {
       gps = gpsData;
     } else {
-      gps = { lat: 0, lng: 0 };
+      gps = new LngLat(0, 0);
     }
     previewUrl = URL.createObjectURL(file);
     selected = null;
