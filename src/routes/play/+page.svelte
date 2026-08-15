@@ -8,17 +8,11 @@
   import "./map.css";
   import calculateResults from "$lib/functions/calculateResults";
   import Results from "./Results.svelte";
-
-  type Photo = {
-    id: string;
-    storage_path: string;
-    lat: number | null;
-    lng: number | null;
-    status: "pending" | "approved" | "rejected";
-    publicUrl?: string | null;
-  };
+  import type { Photo, RoundState, GameState } from "../../consts";
 
   const IMAGE_COUNT = 5;
+
+  let game: GameState = $state({ rounds: [], currIndex: 0, totalScore: 0 });
 
   let imageLoading: boolean = $state(true);
   let lockedIn: boolean = $state(false);
@@ -42,7 +36,7 @@
   let guess: ml.LngLat = $state<ml.LngLat>(new ml.LngLat(0, 0));
 
   let dist: number | undefined = $state();
-  let score: number | undefined = $state();
+  let score: number = $state(0);
 
   let showResults: boolean = $state(false);
 
@@ -84,13 +78,22 @@
         .getPublicUrl(photo.storage_path);
 
       photos[i] = { ...photo, publicUrl: pubData.publicUrl };
+
+      game.rounds[i] = {
+        photo,
+        guess: null,
+        score: 0,
+        dist: undefined,
+      };
     }
 
+    console.log(game);
     imageLoading = false;
   };
 
   const handleNextPhoto = async () => {
     currentPhotoIndex++;
+    game.currIndex = currentPhotoIndex;
     guess = new ml.LngLat(0, 0);
     lockedIn = false;
 
@@ -208,7 +211,7 @@
     }
 
     const results = calculateResults(guess, answer);
-    dist = results.dist;
+    dist = Math.round(results.dist);
     score = results.score;
 
     map = new ml.Map({
@@ -266,6 +269,12 @@
         maxZoom: 17,
         duration: 1000,
       });
+
+      // Update game state
+      game.rounds[currentPhotoIndex].dist = dist;
+      game.rounds[currentPhotoIndex].guess = guess;
+      game.rounds[currentPhotoIndex].score = score;
+      game.totalScore += score;
     });
 
     console.log("Distance away: " + dist);
@@ -327,6 +336,12 @@
     });
   });
 
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (event.key === " " && guess.lat !== 0 && !lockedIn) {
+      handleLockIn();
+    }
+  };
+
   onDestroy(() => {
     map?.remove();
   });
@@ -336,8 +351,10 @@
   <title>TechGuessr - Play</title>
 </svelte:head>
 
+<svelte:window onkeydown={onKeyDown} />
+
 {#if showResults}
-  <Results />
+  <Results open={true} rounds={game.rounds} totalScore={game.totalScore} />
 {:else}
   <div
     class="relative flex-1 min-h-0 overflow-hidden touch-none"
@@ -410,7 +427,7 @@
       <div class="rounded-box h-64 w-full" bind:this={mapScoreContainer}></div>
       <div class="text-center">
         <p class="text-7xl font-black my-4">{score}</p>
-        <p>Your guess was {dist ? Math.round(dist) : 0}m away!</p>
+        <p>Your guess was {dist}m away!</p>
       </div>
       {#if currentPhotoIndex != 4}
         <div class="flex place-content-end">
@@ -423,7 +440,9 @@
         <div class="flex place-content-center">
           <button
             class="btn btn-primary btn-wide"
-            onclick={() => (showResults = true)}
+            onclick={() => {
+              showResults = true;
+            }}
           >
             <ScrollText />
             <span>Results</span>

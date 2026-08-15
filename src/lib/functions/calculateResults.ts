@@ -1,5 +1,4 @@
 import { LngLat } from "maplibre-gl";
-import type { Gps } from "../../consts";
 
 type Result = {
   dist: number;
@@ -7,7 +6,7 @@ type Result = {
   score: number;
 };
 
-export default function calculateResults(guess: Gps, ans: Gps): Result {
+export default function calculateResults(guess: LngLat, ans: LngLat): Result {
   if (!guess || !ans) {
     throw Error("Invalid GPS arguments");
   }

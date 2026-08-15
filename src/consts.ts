@@ -1,3 +1,5 @@
+import type { LngLat } from "maplibre-gl";
+
 export type Photo = {
   id: string;
   storage_path: string;
@@ -5,8 +7,21 @@ export type Photo = {
   lng: number | null;
   comment?: string;
   status: "pending" | "approved" | "rejected";
-  created_at: string;
-  thumbUrl?: string | null;
+  created_at?: string;
+  publicUrl?: string | null;
+};
+
+export type RoundState = {
+  photo: Photo;
+  guess: LngLat | null;
+  score: number;
+  dist: number | undefined;
+};
+
+export type GameState = {
+  rounds: RoundState[];
+  currIndex: number;
+  totalScore: number;
 };
 
 export type Theme = {
