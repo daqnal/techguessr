@@ -31,7 +31,7 @@
     }
 
     const { error } = await supabase.from("settings").upsert({
-      id: user.id,
+      user_id: user.id,
       theme: currTheme.id,
       unit_system: currUnitSystem,
       updated_at: new Date().toISOString(),
@@ -63,7 +63,7 @@
       const { error, data } = await supabase
         .from("settings")
         .select("theme, unit_system")
-        .eq("id", user.id)
+        .eq("user_id", user.id)
         .single();
 
       if (error) {

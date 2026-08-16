@@ -40,8 +40,11 @@
 </script>
 
 <nav class="flex justify-between place-items-center p-2 bg-base-300">
-  <div class="h-fit">
-    <a href="/" class="btn btn-ghost text-lg font-black">TechGuessr</a>
+  <div class="h-fit flex place-items-center gap-1">
+    <a href="/" class="btn btn-ghost text-lg font-black">
+      <span>TechGuessr</span>
+      <span class="badge badge-accent font-normal badge-xs">ALPHA</span>
+    </a>
   </div>
   <div>
     <ul class="menu menu-horizontal bg-base-200 rounded-box p-0">

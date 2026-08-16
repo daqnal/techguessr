@@ -1,0 +1,65 @@
+{
+  photo: {
+    id: "19b7d4de-6db6-4319-8975-5f50aec70d22",
+    storage_path:
+      "1657d2b1-6215-41cf-bec2-bcc02ade02ba/ee6ed958-93c3-42bf-aed0-6d5d2b02dfe7.webp",
+    lat: 33.7797450982003,
+    lng: -84.4047701156098,
+    status: "approved",
+  },
+  guess: new LngLat(-84.39884611388625, 33.77604905948618),
+  score: 1577,
+  dist: 685,
+},
+{
+  photo: {
+    id: "5ea15889-4d12-4332-a019-5883d1709679",
+    storage_path:
+      "1657d2b1-6215-41cf-bec2-bcc02ade02ba/94113f9a-ab57-43be-b57e-3d0f7f89ee4f.webp",
+    lat: 33.7701604364986,
+    lng: -84.3912597362644,
+    status: "approved",
+  },
+  guess: new LngLat(-84.39884611388625, 33.77599555152787),
+  score: 223,
+  dist: 955,
+},
+{
+  photo: {
+    id: "25e55f3d-78bb-4d80-96ab-ca6115b7d0e2",
+    storage_path:
+      "1657d2b1-6215-41cf-bec2-bcc02ade02ba/6ed7af1d-2e7a-4110-8cff-4036f7d366dd.webp",
+    lat: 33.7750549536266,
+    lng: -84.3939305626345,
+    status: "approved",
+  },
+  guess: new LngLat(-84.39884611388625, 33.77610256741107),
+  score: 2655,
+  dist: 469,
+},
+{
+  photo: {
+    id: "25e55f3d-78bb-4d80-96ab-ca6115b7d0e2",
+    storage_path:
+      "1657d2b1-6215-41cf-bec2-bcc02ade02ba/6ed7af1d-2e7a-4110-8cff-4036f7d366dd.webp",
+    lat: 33.7750549536266,
+    lng: -84.3939305626345,
+    status: "approved",
+  },
+  guess: new LngLat(-84.39876028319799, 33.77604905948618),
+  score: 2701,
+  dist: 460,
+},
+{
+  photo: {
+    id: "34efa918-11cf-4cd4-9373-6a8b8b0068aa",
+    storage_path:
+      "1657d2b1-6215-41cf-bec2-bcc02ade02ba/59849630-91fc-4238-99fd-d9788b5126e6.webp",
+    lat: 33.7785658148944,
+    lng: -84.4009462258718,
+    status: "approved",
+  },
+  guess: new LngLat(-84.39882465621419, 33.77599555152787),
+  score: 3267,
+  dist: 347,
+},

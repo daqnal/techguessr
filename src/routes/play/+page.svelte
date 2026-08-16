@@ -7,12 +7,22 @@
   import "maplibre-gl/dist/maplibre-gl.css";
   import "./map.css";
   import calculateResults from "$lib/functions/calculateResults";
-  import Results from "./Results.svelte";
-  import type { Photo, RoundState, GameState } from "../../consts";
+  import type { Photo, GameState } from "../../consts";
+  import {
+    IMAGE_COUNT,
+    MAP_STYLE_URL,
+    CAMPUS_BOUNDS,
+    CAMPUS_CENTER,
+  } from "../../consts";
+  import { loadAvatar } from "$lib/functions/loadAvatar";
+  import { destroyMap } from "$lib/functions/destroyMap";
 
-  const IMAGE_COUNT = 5;
-
-  let game: GameState = $state({ rounds: [], currIndex: 0, totalScore: 0 });
+  let game: GameState = $state({
+    id: crypto.randomUUID(),
+    rounds: [],
+    currIndex: 0,
+    totalScore: 0,
+  });
 
   let imageLoading: boolean = $state(true);
   let lockedIn: boolean = $state(false);
@@ -38,29 +48,10 @@
   let dist: number | undefined = $state();
   let score: number = $state(0);
 
-  let showResults: boolean = $state(false);
-
-  const MAP_STYLE_URL: string = "https://tiles.openfreemap.org/styles/bright";
-
-  const CAMPUS_CENTER: ml.LngLat = new ml.LngLat(-84.398815, 33.776099);
-  const CAMPUS_NE_BOUND: ml.LngLat = new ml.LngLat(
-    -84.3831385540561,
-    33.79079208919991,
-  );
-  const CAMPUS_SW_BOUND: ml.LngLat = new ml.LngLat(
-    -84.41193287304678,
-    33.761922412793176,
-  );
-  const CAMPUS_BOUNDS: ml.LngLatBounds = new ml.LngLatBounds(
-    CAMPUS_SW_BOUND,
-    CAMPUS_NE_BOUND,
-  );
-
   const loadPhotos = async () => {
-    const { data, error } = await supabase
-      .from("photos")
-      .select("id, storage_path, lat, lng, status")
-      .eq("status", "approved");
+    const { data, error } = await supabase.rpc("get_random_photos", {
+      photo_count: IMAGE_COUNT,
+    });
 
     if (error) {
       toast(error.message, "error");
@@ -71,7 +62,7 @@
     }
 
     for (let i = 0; i < IMAGE_COUNT; i++) {
-      const photo = data[Math.floor(Math.random() * data.length)];
+      const photo = data[i];
 
       const { data: pubData } = supabase.storage
         .from("photos")
@@ -80,6 +71,7 @@
       photos[i] = { ...photo, publicUrl: pubData.publicUrl };
 
       game.rounds[i] = {
+        id: crypto.randomUUID(),
         photo,
         guess: null,
         score: 0,
@@ -87,7 +79,6 @@
       };
     }
 
-    console.log(game);
     imageLoading = false;
   };
 
@@ -105,14 +96,8 @@
     });
   };
 
-  const destroyMap = () => {
-    map?.remove();
-    map = undefined;
-    guessMarker = undefined;
-  };
-
   const initGuessMap = () => {
-    destroyMap();
+    destroyMap(map, guessMarker);
 
     map = new ml.Map({
       container: mapGuessContainer,
@@ -128,33 +113,6 @@
       guess = e.lngLat;
       setGuessMarker(guess);
     });
-  };
-
-  const loadAvatar = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      avatarUrl = null;
-      return;
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("avatar_url")
-      .eq("id", user.id)
-      .single();
-
-    const { data, error } = await supabase.storage
-      .from("avatars")
-      .download(profile?.avatar_url);
-
-    if (error) {
-      console.error(error.message);
-    } else {
-      const url = URL.createObjectURL(data);
-      avatarUrl = url;
-    }
   };
 
   function onWheel(e: WheelEvent) {
@@ -202,7 +160,7 @@
 
   const handleLockIn = async () => {
     lockedIn = true;
-    destroyMap();
+    destroyMap(map);
 
     const answer = new ml.LngLat(0, 0);
     if (photos[currentPhotoIndex].lng && photos[currentPhotoIndex].lat) {
@@ -275,10 +233,28 @@
       game.rounds[currentPhotoIndex].guess = guess;
       game.rounds[currentPhotoIndex].score = score;
       game.totalScore += score;
+
+      // Store game data in localStorage
+      localStorage.setItem("game", JSON.stringify(game));
     });
 
-    console.log("Distance away: " + dist);
-    console.log("Score: " + score);
+    await handleRoundUpload();
+  };
+
+  const handleRoundUpload = async () => {
+    const { error } = await supabase.from("game_rounds").upsert({
+      id: game.rounds[currentPhotoIndex].id,
+      game_id: game.id,
+      round_index: currentPhotoIndex,
+      photo_id: game.rounds[currentPhotoIndex].photo.id,
+      guess_lat: guess.lat,
+      guess_lng: guess.lng,
+      score: score,
+      dist: dist,
+      created_at: new Date().toISOString(),
+    });
+
+    if (error) toast(error.message, "error");
   };
 
   const setGuessMarker = (lngLat: ml.LngLat) => {
@@ -316,10 +292,7 @@
       .addTo(map!);
   };
 
-  onMount(() => {
-    loadPhotos();
-    loadAvatar();
-
+  const createGuessMap = () => {
     map = new ml.Map({
       container: mapGuessContainer,
       style: MAP_STYLE_URL,
@@ -334,7 +307,29 @@
       guess = e.lngLat;
       setGuessMarker(guess);
     });
+  };
+
+  onMount(async () => {
+    loadPhotos();
+    avatarUrl = await loadAvatar();
+    createGuessMap();
+    uploadEmptyGame();
   });
+
+  const uploadEmptyGame = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return;
+    }
+
+    const { error } = await supabase.from("games").upsert({
+      id: game.id,
+      user_id: user.id,
+    });
+    if (error) toast(error.message, "error");
+  };
 
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === " " && guess.lat !== 0 && !lockedIn) {
@@ -353,102 +348,93 @@
 
 <svelte:window onkeydown={onKeyDown} />
 
-{#if showResults}
-  <Results open={true} rounds={game.rounds} totalScore={game.totalScore} />
-{:else}
-  <div
-    class="relative flex-1 min-h-0 overflow-hidden touch-none"
-    bind:this={frame}
-  >
-    {#if imageLoading}
-      <p class="h-full text-center place-content-center">
-        <span class="loading loading-spinner loading-xl"></span>
-        <span class="block text-lg mt-4">Next location loading...</span>
-      </p>
-    {:else}
-      <div
-        class="absolute inset-0 origin-top-left will-change-transform {scale !==
-          1 && 'cursor-grab'} {dragging && 'cursor-grabbing'}"
-        style="transform: translate({x}px, {y}px) scale({scale})"
-        onpointerdown={onPointerDown}
-        onpointermove={onPointerMove}
-        onpointerup={onPointerUp}
-        onpointercancel={onPointerUp}
-        role="presentation"
-        onwheel={onWheel}
-      >
-        <img
-          src={photos[currentPhotoIndex].publicUrl}
-          alt="Check internet connection 👌"
-          class="w-full h-full object-contain select-none pointer-events-none"
-        />
-      </div>
-    {/if}
+<div
+  class="relative flex-1 min-h-0 overflow-hidden touch-none"
+  bind:this={frame}
+>
+  {#if imageLoading}
+    <p class="h-full text-center place-content-center">
+      <span class="loading loading-spinner loading-xl"></span>
+      <span class="block text-lg mt-4">Next location loading...</span>
+    </p>
+  {:else}
+    <div
+      class="absolute inset-0 origin-top-left will-change-transform {scale !==
+        1 && 'cursor-grab'} {dragging && 'cursor-grabbing'}"
+      style="transform: translate({x}px, {y}px) scale({scale})"
+      onpointerdown={onPointerDown}
+      onpointermove={onPointerMove}
+      onpointerup={onPointerUp}
+      onpointercancel={onPointerUp}
+      role="presentation"
+      onwheel={onWheel}
+    >
+      <img
+        src={photos[currentPhotoIndex].publicUrl}
+        alt="Check internet connection 👌"
+        class="w-full h-full object-contain select-none pointer-events-none"
+      />
+    </div>
+  {/if}
 
-    {#if !lockedIn}
-      <div
-        class="absolute w-full h-full flex flex-col gap-2 place-content-between pointer-events-none"
-      >
-        <div class="flex pl-2">
-          <ul class="steps steps-vertical">
+  {#if !lockedIn}
+    <div
+      class="absolute w-full h-full flex flex-col gap-2 place-content-between pointer-events-none"
+    >
+      <div></div>
+      <div class="w-full flex place-content-between place-items-end p-2">
+        <div class="flex">
+          <ul class="steps">
             {#each { length: IMAGE_COUNT }, i}
               <li class="step {currentPhotoIndex > i && 'step-success'}"></li>
             {/each}
           </ul>
         </div>
-
-        <div class="w-full flex place-content-end p-2">
+        <div
+          class="flex flex-col gap-2 w-[25vw] h-[30vh] hover:w-[35vw] hover:h-[45vh] pointer-events-auto"
+        >
           <div
-            class="flex flex-col gap-2 w-[25vw] h-[30vh] hover:w-[35vw] hover:h-[45vh] pointer-events-auto"
+            id="map-guess-container"
+            bind:this={mapGuessContainer}
+            class="flex-1 w-full rounded-box"
+          ></div>
+          <button
+            type="button"
+            class="btn btn-success w-full z-20 shadow-lg {guess.lng === 0 &&
+              'btn-disabled bg-success/50'}"
+            onclick={() => handleLockIn()}
           >
-            <div
-              id="map-guess-container"
-              bind:this={mapGuessContainer}
-              class="flex-1 w-full rounded-box hover:rounded-box"
-            ></div>
-            <button
-              type="button"
-              class="btn btn-success w-full z-20 shadow-lg {guess.lng === 0 &&
-                'btn-disabled bg-success/50'}"
-              onclick={() => handleLockIn()}
-            >
-              <Lock size={16} />
-              <span class="font-black">LOCK IT IN</span>
-            </button>
-          </div>
+            <Lock size={16} />
+            <span class="font-black">LOCK IT IN</span>
+          </button>
         </div>
+      </div>
+    </div>
+  {/if}
+</div>
+
+<!-- Modal -->
+<dialog class="modal {lockedIn && 'modal-open'}" id="score-modal">
+  <div class="modal-box flex flex-col gap-2">
+    <div class="rounded-box h-64 w-full" bind:this={mapScoreContainer}></div>
+    <div class="text-center">
+      <p class="text-7xl font-black my-4">{score}</p>
+      <p>Your guess was {dist}m away!</p>
+    </div>
+    {#if currentPhotoIndex != 4}
+      <div class="flex place-content-end">
+        <button class="btn btn-primary" onclick={handleNextPhoto}>
+          <span>Next</span>
+          <ChevronRight />
+        </button>
+      </div>
+    {:else}
+      <div class="flex place-content-center">
+        <a href="/play/results" class="btn btn-primary btn-wide">
+          <ScrollText />
+          <span>Results</span>
+        </a>
       </div>
     {/if}
   </div>
-
-  <!-- Modal -->
-  <dialog class="modal {lockedIn && 'modal-open'}" id="score-modal">
-    <div class="modal-box flex flex-col gap-2">
-      <div class="rounded-box h-64 w-full" bind:this={mapScoreContainer}></div>
-      <div class="text-center">
-        <p class="text-7xl font-black my-4">{score}</p>
-        <p>Your guess was {dist}m away!</p>
-      </div>
-      {#if currentPhotoIndex != 4}
-        <div class="flex place-content-end">
-          <button class="btn btn-primary" onclick={handleNextPhoto}>
-            <span>Next</span>
-            <ChevronRight />
-          </button>
-        </div>
-      {:else}
-        <div class="flex place-content-center">
-          <button
-            class="btn btn-primary btn-wide"
-            onclick={() => {
-              showResults = true;
-            }}
-          >
-            <ScrollText />
-            <span>Results</span>
-          </button>
-        </div>
-      {/if}
-    </div>
-  </dialog>
-{/if}
+</dialog>

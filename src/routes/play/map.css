@@ -3,5 +3,5 @@
 }
 
 .maplibregl-canvas {
-  border-radius: 1rem;
+  border-radius: var(--border);
 }
