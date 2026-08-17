@@ -3,7 +3,7 @@
   import { supabase } from "$lib/supabaseClient";
   import { extractGps, uploadPhoto } from "$lib/functions/photoUpload";
   import { toast } from "$lib/components/toast/toast.svelte";
-  import { Save, Trash } from "@lucide/svelte";
+  import { Save, Scale, Trash } from "@lucide/svelte";
   import type { Photo } from "../../consts";
   import { LngLat } from "maplibre-gl";
 
@@ -14,6 +14,7 @@
   let gps: LngLat | null = $state(new LngLat(0, 0));
   let comment: string | null = $state(null);
   let uploading = $state(false);
+  let showRulesModal: boolean = $state(false);
 
   async function loadPhotos() {
     const {
@@ -40,9 +41,14 @@
 
       return {
         ...p,
-        thumbUrl: pub.publicUrl,
+        publicUrl: pub.publicUrl,
       };
     });
+
+    // Show rules modal for first time uploaders
+    if (photos.length === 0) {
+      showRulesModal = true;
+    }
   }
 
   async function onFile(e: Event) {
@@ -95,13 +101,13 @@
 
     if (!selected.lat || isNaN(selected.lat)) {
       if (!selected.lng || isNaN(selected.lng)) {
-        toast("Invalid latitude and lngitude", "error");
+        toast("Invalid latitude and longitude", "error");
         return;
       }
       toast("Invalid latitude", "error");
       return;
     } else if (!selected.lng || isNaN(selected.lng)) {
-      toast("Invalid lngitude", "error");
+      toast("Invalid longitude", "error");
       return;
     }
 
@@ -165,8 +171,8 @@
           }}
         >
           <img
-            src={photo.thumbUrl}
-            alt={photo.thumbUrl}
+            src={photo.publicUrl}
+            alt={photo.publicUrl}
             class="max-h-42 max-w-42 object-contain rounded-box {selected?.id ===
             photo.id
               ? 'opacity-50'
@@ -197,7 +203,7 @@
         {#if selected || pendingFile}
           <div class="flex-1 flex place-content-center place-items-center">
             <img
-              src={selected ? selected.thumbUrl : previewUrl}
+              src={selected ? selected.publicUrl : previewUrl}
               alt="Preview"
               class="max-h-72 rounded-box"
             />
@@ -209,7 +215,7 @@
                 <label class="floating-label flex-1">
                   <span>Latitude</span>
                   <input
-                    class="input input-bordered input-sm"
+                    class="w-full input input-bordered input-sm"
                     type="number"
                     step="any"
                     placeholder="Latitude"
@@ -218,12 +224,12 @@
                   />
                 </label>
                 <label class="floating-label flex-1">
-                  <span>lngitude</span>
+                  <span>Longitude</span>
                   <input
-                    class="input input-bordered input-sm"
+                    class="w-full input input-bordered input-sm"
                     type="number"
                     step="any"
-                    placeholder="lngitude"
+                    placeholder="Longitude"
                     bind:value={selected.lng}
                     required
                   />
@@ -242,7 +248,7 @@
                 <label class="floating-label flex-1">
                   <span>Latitude</span>
                   <input
-                    class="input input-bordered input-sm"
+                    class="w-full input input-bordered input-sm"
                     type="number"
                     step="any"
                     placeholder="Latitude"
@@ -251,9 +257,9 @@
                   />
                 </label>
                 <label class="floating-label flex-1">
-                  <span>lngitude</span>
+                  <span>Longitude</span>
                   <input
-                    class="input input-bordered input-sm"
+                    class="w-full input input-bordered input-sm"
                     type="number"
                     step="any"
                     placeholder="lngitude"
@@ -310,6 +316,7 @@
           class="file-input file-input-bordered flex-1"
           onchange={onFile}
         />
+
         <button
           class="btn btn-primary"
           type="button"
@@ -318,10 +325,60 @@
         >
           {uploading ? "Uploading…" : "Submit for review"}
         </button>
+
+        <button
+          class="btn btn-circle btn-info tooltip tooltip-left"
+          data-tip="Submission Rules"
+          onclick={() => (showRulesModal = true)}
+        >
+          <Scale />
+        </button>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Rules modal -->
+<dialog class="modal {showRulesModal && 'modal-open'}">
+  <div class="modal-box flex flex-col gap-2">
+    <article class="prose">
+      <h1 class="text-center">Submission Rules</h1>
+      <ol>
+        <li>No inappropriate content (instant ban)</li>
+        <li>
+          Photo must have some recognizable feature (don't submit a random wall)
+        </li>
+        <li>
+          Coordinates must reflect <b>where the photographer was standing</b>,
+          not where the focus of the photo is
+        </li>
+        <li>
+          Make sure manual coordinates are exactly correct (if you don't
+          remember where it was, don't upload it)
+        </li>
+        <li>Photo size must not exceed 5MB</li>
+        <li>Limit 15 photos per hour to prevent abuse</li>
+      </ol>
+
+      <hr style="margin: 12px 0px;" />
+
+      <ul>
+        <li><b>Every photo submitted can be viewed publicly</b></li>
+        <li>All photos will be reviewed by an admin prior to approval</li>
+        <li>Submissions may be denied or deleted at any time without reason</li>
+      </ul>
+    </article>
+
+    <div class="flex place-content-end">
+      <button
+        class="btn btn-success"
+        onclick={() => {
+          showRulesModal = false;
+        }}>Understood 🫡</button
+      >
+    </div>
+  </div>
+</dialog>
 
 <style>
   /* Disable step indicators on numerical inputs */

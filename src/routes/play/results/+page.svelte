@@ -9,7 +9,7 @@
     type GameState,
     type RoundState,
   } from "../../../consts";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { loadAvatar } from "$lib/functions/loadAvatar";
   import { destroyMap } from "$lib/functions/destroyMap";
   import { calculateBounds } from "$lib/functions/calculateBounds";
@@ -22,7 +22,7 @@
   let points: LngLat[] = [];
 
   let selectedRoundIndex: number | undefined = $state(undefined);
-  let bounds: LngLatBounds = $state(new LngLatBounds(new LngLat(0, 0)));
+  let bounds: LngLatBounds = $state(new LngLatBounds());
 
   let avatarUrl = $state<string | null>(null);
 
@@ -39,15 +39,56 @@
       center: CAMPUS_CENTER,
       zoom: 15,
       minZoom: 12,
-      maxZoom: 18,
+      maxZoom: 20,
       maxBounds: CAMPUS_BOUNDS,
     });
-
-    bounds = new LngLatBounds(new LngLat(0, 0));
 
     map.on("load", async () => {
       avatarUrl = await loadAvatar();
 
+      for (let i = 0; i < IMAGE_COUNT; i++) {
+        const answerCoords = new LngLat(
+          rounds[i].photo.lng ?? 0,
+          rounds[i].photo.lat ?? 0,
+        );
+        const guessCoords = new LngLat(
+          rounds[i].guess?.lng ?? 0,
+          rounds[i].guess?.lat ?? 0,
+        );
+
+        map!.addSource(`guess-${i}-line`, {
+          type: "geojson",
+          data: {
+            type: "Feature",
+            properties: {},
+            geometry: {
+              type: "LineString",
+              coordinates: [
+                [guessCoords.lng, guessCoords.lat],
+                [answerCoords.lng, answerCoords.lat],
+              ],
+            },
+          },
+        });
+
+        map!.addLayer({
+          id: `guess-${i}-line-layer`,
+          type: "line",
+          source: `guess-${i}-line`,
+          layout: {
+            "line-cap": "round",
+            "line-join": "round",
+          },
+          paint: {
+            "line-color": "#7aa2f7",
+            "line-width": 3,
+            "line-opacity": 1,
+          },
+        });
+      }
+    });
+
+    map?.once("idle", () => {
       for (let i = 0; i < IMAGE_COUNT; i++) {
         const answerCoords = new LngLat(
           rounds[i].photo.lng ?? 0,
@@ -111,40 +152,10 @@
         })
           .setLngLat(answerCoords)
           .addTo(map!);
-
-        map!.addSource(`guess-${i}-line`, {
-          type: "geojson",
-          data: {
-            type: "Feature",
-            properties: {},
-            geometry: {
-              type: "LineString",
-              coordinates: [
-                [guessCoords.lng, guessCoords.lat],
-                [answerCoords.lng, answerCoords.lat],
-              ],
-            },
-          },
-        });
-
-        map!.addLayer({
-          id: `guess-${i}-line-layer`,
-          type: "line",
-          source: `guess-${i}-line`,
-          layout: {
-            "line-cap": "round",
-            "line-join": "round",
-          },
-          paint: {
-            "line-color": "#7aa2f7",
-            "line-width": 3,
-            "line-opacity": 1,
-          },
-        });
       }
-
-      zoomToAllPoints();
     });
+
+    zoomToAllPoints();
   };
 
   const zoomToAllPoints = () => {
@@ -213,16 +224,17 @@
       toast("No game data found", "error");
       return;
     }
-    console.log(typeof rawGameData);
+
     game = JSON.parse(rawGameData);
     if (game?.rounds && game.totalScore) {
       rounds = game.rounds;
       totalScore = game.totalScore;
+    } else {
+      toast("Invalid game data", "error");
     }
 
-    createResultsMap();
-
     // Create an array of all of the guess and answer locations to use for resizing the map
+    points = [];
     for (let i = 0; i < IMAGE_COUNT; i++) {
       const answerCoords = new LngLat(
         rounds[i].photo.lng ?? 0,
@@ -235,6 +247,8 @@
 
       points.push(guessCoords, answerCoords);
     }
+
+    createResultsMap();
 
     await uploadGame();
   });

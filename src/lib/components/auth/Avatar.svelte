@@ -108,8 +108,7 @@
   {:else if avatarUrl}
     <a
       href="/auth"
-      class="btn btn-primary btn-circle w-8 h-8 rounded-full p-0.5 tooltip tooltip-bottom"
-      data-tip="Account"
+      class="btn btn-primary btn-circle w-8 h-8 rounded-full p-0.5"
     >
       <img
         src={avatarUrl}
@@ -118,11 +117,7 @@
       />
     </a>
   {:else}
-    <a
-      href="/auth"
-      class="btn btn-primary btn-sm btn-circle tooltip tooltip-bottom"
-      data-tip="Account"
-    >
+    <a href="/auth" class="btn btn-primary btn-sm btn-circle tooltip">
       <User size={16} />
     </a>
   {/if}

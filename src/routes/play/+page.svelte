@@ -1,7 +1,7 @@
 <script lang="ts">
   import { toast } from "$lib/components/toast/toast.svelte";
   import { supabase } from "$lib/supabaseClient";
-  import { Lock, ChevronRight, ScrollText } from "@lucide/svelte";
+  import { Lock, ChevronRight, ScrollText, ArrowUpLeft } from "@lucide/svelte";
   import { onMount, onDestroy, tick } from "svelte";
   import * as ml from "maplibre-gl";
   import "maplibre-gl/dist/maplibre-gl.css";
@@ -104,8 +104,8 @@
       style: MAP_STYLE_URL,
       center: CAMPUS_CENTER,
       zoom: 15,
-      minZoom: 14,
-      maxZoom: 18,
+      minZoom: 12,
+      maxZoom: 20,
       maxBounds: CAMPUS_BOUNDS,
     });
 
@@ -177,8 +177,8 @@
       style: MAP_STYLE_URL,
       center: guess,
       zoom: 15,
-      minZoom: 14,
-      maxZoom: 18,
+      minZoom: 12,
+      maxZoom: 20,
       maxBounds: CAMPUS_BOUNDS,
     });
 
@@ -298,8 +298,8 @@
       style: MAP_STYLE_URL,
       center: CAMPUS_CENTER,
       zoom: 15,
-      minZoom: 14,
-      maxZoom: 18,
+      minZoom: 12,
+      maxZoom: 20,
       maxBounds: CAMPUS_BOUNDS,
     });
 
@@ -381,22 +381,18 @@
     <div
       class="absolute w-full h-full flex flex-col gap-2 place-content-between pointer-events-none"
     >
-      <div></div>
+      <div class="badge badge-lg badge-neutral m-2 font-bold">
+        Round {currentPhotoIndex + 1}/5
+      </div>
       <div class="w-full flex place-content-between place-items-end p-2">
-        <div class="flex">
-          <ul class="steps">
-            {#each { length: IMAGE_COUNT }, i}
-              <li class="step {currentPhotoIndex > i && 'step-success'}"></li>
-            {/each}
-          </ul>
-        </div>
+        <div></div>
         <div
-          class="flex flex-col gap-2 w-[25vw] h-[30vh] hover:w-[35vw] hover:h-[45vh] pointer-events-auto"
+          class="flex flex-col gap-2 w-[25vw] min-h-[35vh] pointer-events-auto"
         >
           <div
             id="map-guess-container"
             bind:this={mapGuessContainer}
-            class="flex-1 w-full rounded-box"
+            class="top-0 left-0 w-[25vw] h-[30vh] rounded-box flex"
           ></div>
           <button
             type="button"

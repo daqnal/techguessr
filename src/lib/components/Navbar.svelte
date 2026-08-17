@@ -49,14 +49,14 @@
   <div>
     <ul class="menu menu-horizontal bg-base-200 rounded-box p-0">
       <li class={page.url.pathname === "/" ? "menu-disabled" : ""}>
-        <a href="/">Home</a>
+        <a href="/" class="rounded-l-box">Home</a>
       </li>
       <li class={page.url.pathname === "/play" ? "menu-disabled" : ""}>
         <a href="/play">Play</a>
       </li>
       {#if loggedIn}
         <li class={page.url.pathname === "/submit" ? "menu-disabled" : ""}>
-          <a href="/submit">Submit</a>
+          <a href="/submit" class="rounded-r-box">Submit</a>
         </li>
       {/if}
     </ul>
@@ -64,14 +64,16 @@
   <div class="flex gap-2 pr-2">
     <a
       href="/settings"
-      class="btn btn-primary btn-circle btn-sm tooltip tooltip-bottom"
+      class="btn btn-primary btn-circle btn-sm tooltip tooltip-left"
       data-tip="Settings"
     >
       <Settings size={16} />
     </a>
 
     {#if loggedIn}
-      <Avatar {supabase} upload={false} url={avatarPath ?? undefined} />
+      <div class="tooltip tooltip-bottom" data-tip="Account">
+        <Avatar {supabase} upload={false} url={avatarPath ?? undefined} />
+      </div>
     {:else}
       <a
         href="/auth"

@@ -9,6 +9,7 @@ export async function extractGps(file: File): Promise<LngLat | null> {
     const gps = await exifr.gps(file);
 
     if (gps?.latitude != null && gps?.longitude != null) {
+      toast("GPS data found", "info");
       return new LngLat(gps.longitude, gps.latitude);
     } else {
       toast("No GPS data detected — add coordinates in manually", "info");
@@ -54,7 +55,10 @@ export async function uploadPhoto(
       contentType: "image/webp",
       upsert: false,
     });
-  if (upErr) throw upErr;
+  if (upErr) {
+    toast(upErr.message, "error");
+    throw upErr;
+  }
 
   const { error: dbErr } = await supabase.from("photos").insert({
     user_id: userId,
@@ -64,5 +68,10 @@ export async function uploadPhoto(
     status: "pending",
     comment: comment,
   });
-  if (dbErr) throw dbErr;
+  if (dbErr) {
+    toast(dbErr.message, "error");
+    throw dbErr;
+  } else {
+    toast("Image uploaded successfully", "success");
+  }
 }

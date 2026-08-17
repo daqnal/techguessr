@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @import "../../src/lib/themes/rosepine.css";
 @import "../../src/lib/themes/tokyonight.css";
