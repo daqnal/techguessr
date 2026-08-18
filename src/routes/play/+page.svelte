@@ -1,7 +1,7 @@
 <script lang="ts">
   import { toast } from "$lib/components/toast/toast.svelte";
   import { supabase } from "$lib/supabaseClient";
-  import { Lock, ChevronRight, ScrollText, ArrowUpLeft } from "@lucide/svelte";
+  import { Lock, ChevronRight, ScrollText, X, MapPinned } from "@lucide/svelte";
   import { onMount, onDestroy, tick } from "svelte";
   import * as ml from "maplibre-gl";
   import "maplibre-gl/dist/maplibre-gl.css";
@@ -26,6 +26,7 @@
 
   let imageLoading: boolean = $state(true);
   let lockedIn: boolean = $state(false);
+  let showModal: boolean = $state(false);
   let photos: Photo[] = $state([]);
   let currentPhotoIndex: number = $state(0);
 
@@ -160,6 +161,7 @@
 
   const handleLockIn = async () => {
     lockedIn = true;
+    showModal = true;
     destroyMap(map);
 
     const answer = new ml.LngLat(0, 0);
@@ -377,13 +379,16 @@
     </div>
   {/if}
 
-  {#if !lockedIn}
-    <div
-      class="absolute w-full h-full flex flex-col gap-2 place-content-between pointer-events-none"
-    >
+  <div
+    class="absolute w-full h-full flex flex-col gap-2 place-content-between pointer-events-none"
+  >
+    {#if !lockedIn || !showModal}
       <div class="badge badge-lg badge-neutral m-2 font-bold">
         Round {currentPhotoIndex + 1}/5
       </div>
+    {/if}
+
+    {#if !lockedIn}
       <div class="w-full flex place-content-between place-items-end p-2">
         <div></div>
         <div
@@ -405,22 +410,51 @@
           </button>
         </div>
       </div>
-    </div>
-  {/if}
+    {/if}
+
+    {#if lockedIn && !showModal}
+      <div
+        class="w-full h-full flex place-items-end place-content-end p-2 pointer-events-auto"
+      >
+        <div class="flex gap-2">
+          <button class="btn" onclick={() => (showModal = true)}>
+            <span>Show score</span>
+            <MapPinned />
+          </button>
+          <button class="btn btn-primary" onclick={handleNextPhoto}>
+            <span>Next round</span>
+            <ChevronRight />
+          </button>
+        </div>
+      </div>
+    {/if}
+  </div>
 </div>
 
 <!-- Modal -->
-<dialog class="modal {lockedIn && 'modal-open'}" id="score-modal">
-  <div class="modal-box flex flex-col gap-2">
+<dialog class="modal {showModal && 'modal-open'}" id="score-modal">
+  <div class="modal-box flex flex-col gap-2 p-4">
+    <div class="flex place-content-between place-items-center mb-2">
+      <h2 class="text-xl font-bold">Round {currentPhotoIndex + 1}</h2>
+      <button
+        class="btn btn-circle tooltip tooltip-left"
+        onclick={() => (showModal = false)}
+        data-tip="Hide score"
+      >
+        <X />
+      </button>
+    </div>
+
     <div class="rounded-box h-64 w-full" bind:this={mapScoreContainer}></div>
-    <div class="text-center">
+    <div class="text-center mb-4">
       <p class="text-7xl font-black my-4">{score}</p>
       <p>Your guess was {dist}m away!</p>
     </div>
+
     {#if currentPhotoIndex != 4}
       <div class="flex place-content-end">
         <button class="btn btn-primary" onclick={handleNextPhoto}>
-          <span>Next</span>
+          <span>Next round</span>
           <ChevronRight />
         </button>
       </div>

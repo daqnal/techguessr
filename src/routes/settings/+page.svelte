@@ -1,20 +1,14 @@
 <script lang="ts">
   import { toast } from "$lib/components/toast/toast.svelte";
   import { supabase } from "$lib/supabaseClient";
-  import { themes, type Theme } from "../../consts";
   import SettingsOption from "./SettingsOption.svelte";
   import { onMount } from "svelte";
+  import { useTheme } from "svelte-themes";
 
+  const theme = useTheme();
   let loggedIn = $state(false);
 
-  let currTheme: Theme = $state({ id: "tokyonight", name: "Tokyo Night" });
   let currUnitSystem: string = $state("metric");
-
-  const handleThemeChange = (newTheme: Theme) => {
-    localStorage.setItem("themeId", newTheme.id);
-    localStorage.setItem("themeName", newTheme.name);
-    currTheme = newTheme;
-  };
 
   const handleUnitSystemChange = (newUnitSystem: string) => {
     localStorage.setItem("unitSystem", newUnitSystem);
@@ -32,7 +26,7 @@
 
     const { error } = await supabase.from("settings").upsert({
       user_id: user.id,
-      theme: currTheme.id,
+      theme: theme.theme,
       unit_system: currUnitSystem,
       updated_at: new Date().toISOString(),
     });
@@ -71,32 +65,10 @@
         return;
       }
 
-      // Set theme
-      const matchedTheme: Theme | undefined = themes.find((el) => {
-        if (el.id == data.theme) return el;
-      });
-
-      currTheme.id = matchedTheme?.id ?? currTheme.id;
-      currTheme.name = matchedTheme?.name ?? currTheme.name;
-
-      localStorage.setItem("themeId", currTheme.id);
-      localStorage.setItem("themeName", currTheme.name);
-
       // Set unit system
       currUnitSystem = data.unit_system;
       localStorage.setItem("unitSystem", currUnitSystem);
     } else {
-      // Load theme
-      const themeId = localStorage.getItem("themeId")!;
-      const themeName = localStorage.getItem("themeName")!;
-      if (!themeId || !themeName) {
-        localStorage.setItem("themeId", themes[0].id);
-        localStorage.setItem("themeName", themes[0].name);
-      }
-
-      currTheme.id = themes[0].id;
-      currTheme.name = themes[0].name;
-
       // Load unit system
       const unitSystem = localStorage.getItem("unitSystem");
       if (unitSystem) {
@@ -120,15 +92,14 @@
         <div
           class="w-full max-h-48 overflow-y-scroll join join-vertical rounded-box"
         >
-          {#each themes as theme}
+          {#each theme.themes as name (name)}
             <input
               type="radio"
               name="theme-controller"
-              class="btn btn-soft theme-controller join-item"
-              aria-label={theme.name}
-              value={theme.id}
-              checked={theme.id === currTheme.id}
-              onclick={() => handleThemeChange(theme)}
+              class="btn btn-soft join-item"
+              aria-label={name}
+              checked={theme.theme === name}
+              onclick={() => (theme.theme = name)}
             />
           {/each}
         </div>

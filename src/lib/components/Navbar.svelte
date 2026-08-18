@@ -39,7 +39,7 @@
   });
 </script>
 
-<nav class="flex justify-between place-items-center p-2 bg-base-300">
+<nav class="flex justify-between place-items-center p-2 bg-base-300 z-50">
   <div class="h-fit flex place-items-center gap-1">
     <a href="/" class="btn btn-ghost text-lg font-black">
       <span>TechGuessr</span>
@@ -64,14 +64,14 @@
   <div class="flex gap-2 pr-2">
     <a
       href="/settings"
-      class="btn btn-primary btn-circle btn-sm tooltip tooltip-left"
+      class="btn btn-primary btn-circle btn-sm tooltip tooltip-bottom"
       data-tip="Settings"
     >
       <Settings size={16} />
     </a>
 
     {#if loggedIn}
-      <div class="tooltip tooltip-bottom" data-tip="Account">
+      <div class="tooltip tooltip-bottom font-bold" data-tip="Account">
         <Avatar {supabase} upload={false} url={avatarPath ?? undefined} />
       </div>
     {:else}

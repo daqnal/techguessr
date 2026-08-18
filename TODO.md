@@ -10,7 +10,8 @@
 
 - [x] Round counter
 - [ ] **Media Queries**
-- [ ] Redo home page
+- [x] Redo home page
+- [ ] Make image preview fill available space
 - [ ] Close round score modal to see photo again
 - [ ] Make map opening less annoying
 - [ ] Confetti on 5K
@@ -18,8 +19,8 @@
 
 ## Bugs
 
-- [ ] Refresh on results messes up map markers
-- [ ] Theme switch requires refresh
+- [x] Refresh on results messes up map markers
+- [x] Theme switch requires refresh
 - [ ] Drag and zoom outside of image
 
 ## Security
@@ -35,6 +36,7 @@
 - [ ] Totally redo the Avatar component
 - [ ] Move bulky functions outside of big components like `/game`, `/game/results`, and `/submit`
 - [ ] Have a user "session" stored so not making a bunch of calls to backend to check user's details
+- [ ] Theme constants are obsolete
 
 ## Future Release
 

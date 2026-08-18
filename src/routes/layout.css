@@ -18,26 +18,9 @@
 
 @plugin "daisyui" {
   themes:
-    tokyonight --default,
-    rosepine,
-    catppuccin,
-    gruvbox,
-    kanagawa,
-    everforest,
-    monokai,
-    andromeda,
-    ayudark,
-    nightfox,
-    nightowl,
-    onedarkpro,
-    solarized,
-    flexoki,
-    emerald,
-    synthwave,
-    nord,
-    dracula,
-    sunset,
-    winter;
+    tokyonight, rosepine, catppuccin, gruvbox, kanagawa, everforest, monokai,
+    andromeda, ayudark, nightfox, nightowl, onedarkpro, solarized, flexoki,
+    emerald, synthwave, nord, dracula, sunset, winter;
 }
 @import "@fontsource-variable/outfit/wght.css";
 

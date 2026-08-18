@@ -201,12 +201,18 @@
       <h2 class="text-xl text-center font-bold my-2">Location</h2>
       <div class="flex-1 flex flex-col p-2 gap-2">
         {#if selected || pendingFile}
-          <div class="flex-1 flex place-content-center place-items-center">
-            <img
-              src={selected ? selected.publicUrl : previewUrl}
-              alt="Preview"
-              class="max-h-72 rounded-box"
-            />
+          <div
+            class="flex-1 relative min-w-0 min-h-0 place-content-center place-items-center mb-2"
+          >
+            <div
+              class="absolute top-0 left-0 w-full h-full object-contain flex place-content-center place-items-center"
+            >
+              <img
+                src={selected ? selected.publicUrl : previewUrl}
+                alt="Preview"
+                class="h-full object-contain rounded-box"
+              />
+            </div>
           </div>
 
           <div class="flex flex-col gap-2">

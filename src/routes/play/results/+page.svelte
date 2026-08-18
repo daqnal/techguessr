@@ -1,6 +1,7 @@
 <script lang="ts">
   import "./map.css";
   import { LngLat, LngLatBounds, Map, Marker } from "maplibre-gl";
+  import "maplibre-gl/dist/maplibre-gl.css";
   import {
     CAMPUS_BOUNDS,
     CAMPUS_CENTER,
@@ -85,19 +86,6 @@
             "line-opacity": 1,
           },
         });
-      }
-    });
-
-    map?.once("idle", () => {
-      for (let i = 0; i < IMAGE_COUNT; i++) {
-        const answerCoords = new LngLat(
-          rounds[i].photo.lng ?? 0,
-          rounds[i].photo.lat ?? 0,
-        );
-        const guessCoords = new LngLat(
-          rounds[i].guess?.lng ?? 0,
-          rounds[i].guess?.lat ?? 0,
-        );
 
         const guessMarkerEl = document.createElement("div");
         guessMarkerEl.classList.add(
@@ -124,7 +112,6 @@
 
         let guessMarker = new Marker({
           element: guessMarkerEl,
-          anchor: "center",
         })
           .setLngLat(guessCoords)
           .addTo(map!);
@@ -148,7 +135,6 @@
 
         let answerMarker = new Marker({
           element: answerMarkerEl,
-          anchor: "center",
         })
           .setLngLat(answerCoords)
           .addTo(map!);
