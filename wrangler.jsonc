@@ -1,0 +1,12 @@
+{
+  "name": "techguessr",
+  "account_id": "53cb4a315a12ceb1e1dd55bf34e697b7",
+  "main": "./.cloudflare/worker.js",
+  "site": {
+    "bucket": "./.cloudflare/public",
+  },
+  "build": {
+    "command": "bun run build",
+  },
+  "compatibility_date": "2026-08-20",
+}
