@@ -1,5 +1,15 @@
 # TechGuessr
 
+![Screenshot of techguessr.com](tg_ss.png)
+
+TechGuessr is a map game similar to GeoGuessr, but localized to the Georgia Tech campus in Atlanta.
+
+Each game you receive 5 photos taken by someone on campus, and you have to guess where each one is by selecting a location on the map.
+
+The closer you are, the more points you are awarded. A perfect round gives you 5,000 points, so a perfect game is 25,000 points.
+
+Play now at [techguessr.com](https://techguessr.com)!
+
 ## Stack
 
 - SvelteKit
