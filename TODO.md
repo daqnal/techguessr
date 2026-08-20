@@ -19,12 +19,14 @@
 - [ ] Confetti on 5K
 - [ ] More confetti on 25K
 - [ ] Animations 🤩
+- [ ] Show building names on map
 
 ## Bugs
 
 - [x] Refresh on results messes up map markers
 - [x] Theme switch requires refresh
 - [ ] Drag and zoom outside of image
+- [ ] Don't show images that the same user uploaded
 
 ## Security
 

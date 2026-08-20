@@ -485,6 +485,10 @@
       <ul class="list-(--x)">
         <li>Edit your photo to obscure the location</li>
         <li>Upload a photo if you forgot <b>exactly</b> where it was taken</li>
+        <li>
+          Zoom in when taking the picture (lower quality & harder to pinpoint
+          location)
+        </li>
         <li class="list-(--skull)">Upload NSFW content (instant ban)</li>
         <li class="list-(--skull)">
           Try to spam or DDOS the server (instant ban)

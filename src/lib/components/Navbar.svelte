@@ -1,6 +1,6 @@
 <script lang="ts">
   import { supabase } from "../supabaseClient";
-  import { Settings, User } from "@lucide/svelte";
+  import { Info, Settings, User } from "@lucide/svelte";
   import Avatar from "./auth/Avatar.svelte";
   import { onMount } from "svelte";
   import { page } from "$app/state";
@@ -62,6 +62,14 @@
     </ul>
   </div>
   <div class="flex gap-2 pr-2">
+    <a
+      href="/about"
+      class="btn btn-primary btn-circle btn-sm tooltip tooltip-bottom"
+      data-tip="About"
+    >
+      <Info size={16} />
+    </a>
+
     <a
       href="/settings"
       class="btn btn-primary btn-circle btn-sm tooltip tooltip-bottom"
