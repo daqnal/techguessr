@@ -1,47 +1,57 @@
 <script lang="ts">
   import { supabase } from "../../supabaseClient";
+  import { toast } from "../toast/toast.svelte";
 
   let authType: string = $state("login");
   let loginLoading = $state(false);
   let signupLoading = $state(false);
   let email = $state("");
+  let username = $state("");
   let password = $state("");
-  let authError: string | null = $state(null);
 
   const handleLogin = async () => {
-    try {
-      loginLoading = true;
-      authError = null;
+    loginLoading = true;
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-      localStorage.setItem("loggedIn", "true");
-    } catch (error) {
-      if (error instanceof Error) {
-        authError = error.message;
-      }
-    } finally {
-      loginLoading = false;
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      toast(error.message, "error");
+      return;
     }
+
+    localStorage.setItem("loggedIn", "true");
+    loginLoading = false;
   };
 
   const handleSignup = async () => {
-    try {
-      signupLoading = true;
-      authError = null;
+    signupLoading = true;
 
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) throw error;
-    } catch (error) {
-      if (error instanceof Error) {
-        authError = error.message;
-      }
-    } finally {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+
+    if (error) {
+      toast(error.message, "error");
       signupLoading = false;
+      return;
+    } else if (!data.user?.id) {
+      toast("Failed to retrieve id of new user", "error");
+      signupLoading = false;
+      return;
     }
+
+    const { error: usernameError } = await supabase
+      .from("profiles")
+      .update({ username: username })
+      .eq("id", data.user.id);
+
+    if (usernameError) {
+      toast(usernameError.message, "error");
+    } else {
+      toast("Account created successfully", "success");
+    }
+    signupLoading = false;
   };
 </script>
 
@@ -83,6 +93,18 @@
           onclick={() => (authType = "signup")}
         />
       </div>
+
+      {#if authType === "signup"}
+        <input
+          required
+          id="username"
+          name="username"
+          class="input validator w-full"
+          type="text"
+          placeholder="Username"
+          bind:value={username}
+        />
+      {/if}
       <input
         required
         id="email"
@@ -102,25 +124,6 @@
         minlength="8"
         bind:value={password}
       />
-
-      {#if authError}
-        <div role="alert" class="alert alert-error">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6 shrink-0 stroke-current"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <span>{authError}</span>
-        </div>
-      {/if}
 
       {#if authType === "login"}
         <button

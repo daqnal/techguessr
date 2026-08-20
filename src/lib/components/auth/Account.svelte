@@ -20,29 +20,26 @@
   });
 
   const getProfile = async () => {
-    try {
-      loading = true;
-      const { user } = session;
+    loading = true;
+    const { user } = session;
 
-      const { data, error, status } = await supabase
-        .from("profiles")
-        .select("username, avatar_url")
-        .eq("id", user.id)
-        .single();
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("username, avatar_url")
+      .eq("id", user.id)
+      .single();
 
-      if (error && status !== 406) throw error;
-
-      if (data) {
-        username = data.username;
-        avatarUrl = data.avatar_url;
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
-      }
-    } finally {
+    if (error) {
+      toast(error.message, "error");
       loading = false;
+      return;
     }
+
+    if (data) {
+      username = data.username;
+      avatarUrl = data.avatar_url;
+    }
+    loading = false;
   };
 
   const updateProfile = async () => {

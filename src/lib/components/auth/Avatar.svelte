@@ -101,7 +101,7 @@
         class="bg-primary-content w-32 h-32 rounded-full flex place-content-center place-items-center"
       >
         <span class="text-primary cursor-default pointer-events-none">
-          <User size={16} />
+          <User size={48} />
         </span>
       </div>
     {/if}
