@@ -4,13 +4,6 @@ import adapter from "@sveltejs/adapter-cloudflare";
 const config = {
   kit: {
     adapter: adapter(),
-    csp: {
-      mode: "auto",
-      directives: {
-        "worker-src": ["'self'"],
-        "img-src": ["'self'", "data:", "blob:"],
-      },
-    },
   },
 };
 
