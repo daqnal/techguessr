@@ -23,6 +23,7 @@ export const setGuessMarker = (
     "rounded-full",
     "border-3",
     "border-slate-800",
+    "bg-slate-600",
     "flex",
     "place-content-center",
     "place-items-center",
@@ -35,8 +36,6 @@ export const setGuessMarker = (
     img.draggable = false;
     img.classList.add("w-7", "h-7", "rounded-full");
     el.appendChild(img);
-  } else {
-    el.classList.add("background-slate-600");
   }
 
   const marker = new Marker({

@@ -1,6 +1,37 @@
-<script>
+<script lang="ts">
   import BounceCards from "$lib/components/sveltebits/BounceCards.svelte";
   import SplitText from "$lib/components/sveltebits/SplitText.svelte";
+  import { supabase } from "$lib/supabaseClient";
+  import { onMount } from "svelte";
+  import { IMAGE_COUNT, type Photo } from "../consts";
+  import { toast } from "$lib/components/toast/toast.svelte";
+
+  let pubUrls: string[] = $state([]);
+
+  onMount(async () => {
+    const { data, error } = await supabase.rpc("get_random_photos", {
+      photo_count: IMAGE_COUNT,
+      exclude_user_id: null,
+    });
+
+    if (error) {
+      toast(error.message, "error");
+      return;
+    } else if (data.length === 0) {
+      toast("No photos :(", "error");
+      return;
+    }
+
+    for (let i = 0; i < IMAGE_COUNT; i++) {
+      const photo = data[i];
+
+      const { data: pubData } = supabase.storage
+        .from("photos")
+        .getPublicUrl(photo.storage_path);
+
+      pubUrls.push(pubData.publicUrl);
+    }
+  });
 </script>
 
 <div class="fixed inset-0 overflow-hidden pointer-events-none z-10">
@@ -20,12 +51,7 @@
 
     <div class="pointer-events-auto">
       <BounceCards
-        images={[
-          "/example_images/nav.jpg",
-          "/example_images/library.jpg",
-          "/example_images/5g.jpg",
-          "/example_images/parking_deck.jpg",
-        ]}
+        images={pubUrls}
         animationDelay={0.4}
         animationStagger={0.08}
         containerHeight={600}
