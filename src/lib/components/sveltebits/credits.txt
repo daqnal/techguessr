@@ -1,0 +1,3 @@
+All components in this directory are from the Svelte Bits library.
+Repository: https://github.com/DavidHDev/svelte-bits
+Website: https://sveltebits.xyz/

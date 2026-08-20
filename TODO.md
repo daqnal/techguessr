@@ -4,18 +4,21 @@
 
 - [ ] Give games a url so that results can be shared
 - [ ] Make usernames unique
-- [ ] Unit system functionality
+- [x] Unit system functionality
+- [ ] Report images
+- [x] View location on upload
 
 ## UI/UX
 
 - [x] Round counter
 - [ ] **Media Queries**
 - [x] Redo home page
-- [ ] Make image preview fill available space
-- [ ] Close round score modal to see photo again
-- [ ] Make map opening less annoying
+- [x] Make image preview fill available space
+- [x] Close round score modal to see photo again
+- [x] Make map opening less annoying
 - [ ] Confetti on 5K
 - [ ] More confetti on 25K
+- [ ] Animations 🤩
 
 ## Bugs
 
@@ -41,6 +44,5 @@
 ## Future Release
 
 - Difficulty rating for each image
-- Animations 🤩
 - Timer on each round
 - Leaderboard

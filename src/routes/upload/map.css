@@ -1,0 +1,11 @@
+.maplibregl-canvas {
+  border-radius: var(--radius-box);
+}
+
+#map-container .maplibregl-canvas-container.maplibregl-interactive {
+  cursor: crosshair;
+}
+
+#map-container .maplibregl-canvas-container.maplibregl-interactive:active {
+  cursor: grabbing;
+}

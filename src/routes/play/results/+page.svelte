@@ -1,6 +1,6 @@
 <script lang="ts">
   import "./map.css";
-  import { LngLat, LngLatBounds, Map, Marker } from "maplibre-gl";
+  import { LngLat, LngLatBounds, Map } from "maplibre-gl";
   import "maplibre-gl/dist/maplibre-gl.css";
   import {
     CAMPUS_BOUNDS,
@@ -10,13 +10,19 @@
     type GameState,
     type RoundState,
   } from "../../../consts";
-  import { onDestroy, onMount } from "svelte";
+  import { onMount } from "svelte";
   import { loadAvatar } from "$lib/functions/loadAvatar";
   import { destroyMap } from "$lib/functions/destroyMap";
-  import { calculateBounds } from "$lib/functions/calculateBounds";
   import { House, RotateCcw } from "@lucide/svelte";
   import { supabase } from "$lib/supabaseClient";
   import { toast } from "$lib/components/toast/toast.svelte";
+  import { formatDist } from "$lib/functions/formatDistance";
+  import {
+    setAnswerMarker,
+    setGuessMarker,
+    setMapLines,
+    zoomToAllPoints,
+  } from "$lib/functions/mapUtils";
 
   let map: Map | undefined;
   let mapContainer: HTMLDivElement;
@@ -48,116 +54,28 @@
       avatarUrl = await loadAvatar();
 
       for (let i = 0; i < IMAGE_COUNT; i++) {
-        const answerCoords = new LngLat(
+        const answer = new LngLat(
           rounds[i].photo.lng ?? 0,
           rounds[i].photo.lat ?? 0,
         );
-        const guessCoords = new LngLat(
+        const guess = new LngLat(
           rounds[i].guess?.lng ?? 0,
           rounds[i].guess?.lat ?? 0,
         );
 
-        map!.addSource(`guess-${i}-line`, {
-          type: "geojson",
-          data: {
-            type: "Feature",
-            properties: {},
-            geometry: {
-              type: "LineString",
-              coordinates: [
-                [guessCoords.lng, guessCoords.lat],
-                [answerCoords.lng, answerCoords.lat],
-              ],
-            },
-          },
-        });
-
-        map!.addLayer({
-          id: `guess-${i}-line-layer`,
-          type: "line",
-          source: `guess-${i}-line`,
-          layout: {
-            "line-cap": "round",
-            "line-join": "round",
-          },
-          paint: {
-            "line-color": "#7aa2f7",
-            "line-width": 3,
-            "line-opacity": 1,
-          },
-        });
-
-        const guessMarkerEl = document.createElement("div");
-        guessMarkerEl.classList.add(
-          "w-8",
-          "h-8",
-          "rounded-full",
-          "border-primary",
-          "border-3",
-          "flex",
-          "place-content-center",
-          "place-items-center",
-        );
-
-        if (avatarUrl) {
-          const img = document.createElement("img");
-          img.src = avatarUrl;
-          img.alt = "Your guess";
-          img.draggable = false;
-          img.classList.add("w-7", "h-7", "rounded-full");
-          guessMarkerEl.appendChild(img);
-        } else {
-          guessMarkerEl.classList.add("bg-primary/75");
-        }
-
-        let guessMarker = new Marker({
-          element: guessMarkerEl,
-        })
-          .setLngLat(guessCoords)
-          .addTo(map!);
-
-        const answerMarkerEl = document.createElement("div");
-        answerMarkerEl.classList.add(
-          "w-8",
-          "h-8",
-          "rounded-full",
-          "border-primary",
-          "bg-primary/25",
-          "backdrop-blur-md",
-          "text-primary-content/60",
-          "font-black",
-          "border-3",
-          "flex",
-          "place-content-center",
-          "place-items-center",
-        );
-        answerMarkerEl.textContent = String(i + 1);
-
-        let answerMarker = new Marker({
-          element: answerMarkerEl,
-        })
-          .setLngLat(answerCoords)
-          .addTo(map!);
+        setMapLines(guess, answer, map, `-${i}`);
+        setGuessMarker(guess, map, avatarUrl, undefined, false);
+        setAnswerMarker(answer, map, undefined, false);
       }
     });
 
-    zoomToAllPoints();
-  };
-
-  const zoomToAllPoints = () => {
-    bounds = calculateBounds(points);
-
-    map!.fitBounds(bounds, {
-      padding: { top: 48, bottom: 48, left: 48, right: 48 },
-      maxZoom: 17,
-      duration: 1000,
-    });
+    zoomToAllPoints(map, points);
   };
 
   const focusGuess = (i: number | undefined) => {
     if (selectedRoundIndex === i || i === undefined) {
       selectedRoundIndex = undefined;
-      zoomToAllPoints();
+      zoomToAllPoints(map, points);
     } else {
       selectedRoundIndex = i;
 
@@ -283,7 +201,7 @@
             onclick={() => focusGuess(i)}
           >
             <th>{i + 1}</th>
-            <td>{round.dist}</td>
+            <td>{formatDist(round.dist)}</td>
             <td>{round.score}</td>
           </tr>
         {/each}

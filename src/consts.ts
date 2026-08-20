@@ -20,6 +20,11 @@ export const CAMPUS_BOUNDS: LngLatBounds = new LngLatBounds(
   CAMPUS_NE_BOUND,
 );
 
+export const mapDarkBlue: string = "#7aa2f7";
+export const mapLightBlue: string = "#81a9ff";
+export const mapDarkYellow: string = "#efb100";
+export const mapLightYellow: string = "#ffdf20";
+
 export type Photo = {
   id: string;
   storage_path: string;

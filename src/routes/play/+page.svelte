@@ -16,6 +16,12 @@
   } from "../../consts";
   import { loadAvatar } from "$lib/functions/loadAvatar";
   import { destroyMap } from "$lib/functions/destroyMap";
+  import { formatDist } from "$lib/functions/formatDistance";
+  import {
+    setAnswerMarker,
+    setGuessMarker,
+    setMapLines,
+  } from "$lib/functions/mapUtils";
 
   let game: GameState = $state({
     id: crypto.randomUUID(),
@@ -87,32 +93,15 @@
     currentPhotoIndex++;
     game.currIndex = currentPhotoIndex;
     guess = new ml.LngLat(0, 0);
+    showModal = false;
     lockedIn = false;
 
     await tick();
 
     requestAnimationFrame(() => {
-      initGuessMap();
+      destroyMap(map);
+      createGuessMap();
       map?.resize();
-    });
-  };
-
-  const initGuessMap = () => {
-    destroyMap(map, guessMarker);
-
-    map = new ml.Map({
-      container: mapGuessContainer,
-      style: MAP_STYLE_URL,
-      center: CAMPUS_CENTER,
-      zoom: 15,
-      minZoom: 12,
-      maxZoom: 20,
-      maxBounds: CAMPUS_BOUNDS,
-    });
-
-    map?.on("click", (e) => {
-      guess = e.lngLat;
-      setGuessMarker(guess);
     });
   };
 
@@ -185,41 +174,9 @@
     });
 
     map.on("load", () => {
-      answerMarker = new ml.Marker({ color: "#f43098" })
-        .setLngLat(answer)
-        .addTo(map!);
-
-      setGuessMarker(guess);
-
-      map!.addSource("guess-line", {
-        type: "geojson",
-        data: {
-          type: "Feature",
-          properties: {},
-          geometry: {
-            type: "LineString",
-            coordinates: [
-              [guess.lng, guess.lat],
-              [answer.lng, answer.lat],
-            ],
-          },
-        },
-      });
-
-      map!.addLayer({
-        id: "guess-line-layer",
-        type: "line",
-        source: "guess-line",
-        layout: {
-          "line-cap": "round",
-          "line-join": "round",
-        },
-        paint: {
-          "line-color": "#f43098",
-          "line-width": 3,
-          "line-opacity": 0.9,
-        },
-      });
+      answerMarker = setAnswerMarker(answer, map, answerMarker);
+      guessMarker = setGuessMarker(guess, map, avatarUrl, guessMarker);
+      setMapLines(guess, answer, map);
 
       const bounds = new ml.LngLatBounds(guess, guess);
       bounds.extend(answer);
@@ -244,6 +201,8 @@
   };
 
   const handleRoundUpload = async () => {
+    if (localStorage.getItem("loggedIn") !== "true") return;
+
     const { error } = await supabase.from("game_rounds").upsert({
       id: game.rounds[currentPhotoIndex].id,
       game_id: game.id,
@@ -259,41 +218,6 @@
     if (error) toast(error.message, "error");
   };
 
-  const setGuessMarker = (lngLat: ml.LngLat) => {
-    if (!map) return;
-
-    guessMarker?.remove();
-    const el = document.createElement("div");
-    el.classList.add(
-      "w-8",
-      "h-8",
-      "rounded-full",
-      "border-primary",
-      "border-3",
-      "flex",
-      "place-content-center",
-      "place-items-center",
-    );
-
-    if (avatarUrl) {
-      const img = document.createElement("img");
-      img.src = avatarUrl;
-      img.alt = "Your guess";
-      img.draggable = false;
-      img.classList.add("w-7", "h-7", "rounded-full");
-      el.appendChild(img);
-    } else {
-      el.classList.add("bg-primary/75");
-    }
-
-    guessMarker = new ml.Marker({
-      element: el,
-      anchor: "center",
-    })
-      .setLngLat(lngLat)
-      .addTo(map!);
-  };
-
   const createGuessMap = () => {
     map = new ml.Map({
       container: mapGuessContainer,
@@ -307,7 +231,7 @@
 
     map?.on("click", (e) => {
       guess = e.lngLat;
-      setGuessMarker(guess);
+      guessMarker = setGuessMarker(guess, map, avatarUrl, guessMarker, true);
     });
   };
 
@@ -448,7 +372,9 @@
     <div class="rounded-box h-64 w-full" bind:this={mapScoreContainer}></div>
     <div class="text-center mb-4">
       <p class="text-7xl font-black my-4">{score}</p>
-      <p>Your guess was {dist}m away!</p>
+      <p>
+        Your guess was {formatDist(dist)} away!
+      </p>
     </div>
 
     {#if currentPhotoIndex != 4}

@@ -49,14 +49,14 @@
   <div>
     <ul class="menu menu-horizontal bg-base-200 rounded-box p-0">
       <li class={page.url.pathname === "/" ? "menu-disabled" : ""}>
-        <a href="/" class="rounded-l-box">Home</a>
+        <a href="/" class="rounded-box">Home</a>
       </li>
       <li class={page.url.pathname === "/play" ? "menu-disabled" : ""}>
-        <a href="/play">Play</a>
+        <a href="/play" class="rounded-box">Play</a>
       </li>
       {#if loggedIn}
-        <li class={page.url.pathname === "/submit" ? "menu-disabled" : ""}>
-          <a href="/submit" class="rounded-r-box">Submit</a>
+        <li class={page.url.pathname === "/upload" ? "menu-disabled" : ""}>
+          <a href="/upload" class="rounded-box">Upload</a>
         </li>
       {/if}
     </ul>
