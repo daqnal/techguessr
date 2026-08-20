@@ -10,7 +10,7 @@
     MAP_STYLE_URL,
     type Photo,
   } from "../../consts";
-  import { LngLat, Map, Marker } from "maplibre-gl";
+  import { AttributionControl, LngLat, Map, Marker } from "maplibre-gl";
   import "maplibre-gl/dist/maplibre-gl.css";
   import "./map.css";
   import { setAnswerMarker, zoomToAllPoints } from "$lib/functions/mapUtils";
@@ -28,7 +28,7 @@
 
   let mapContainer: HTMLDivElement;
   let map: Map | undefined;
-  let newMarker: Marker | undefined;
+  let newMarker: Marker | undefined = $state();
   let oldMarker: Marker | undefined;
 
   async function loadPhotos() {
@@ -183,7 +183,11 @@
       maxZoom: 20,
       maxBounds: CAMPUS_BOUNDS,
       attributionControl: false,
-    });
+    }).addControl(
+      new AttributionControl({
+        compact: true,
+      }),
+    );
 
     map?.on("click", (e) => {
       if (!selected) return;
@@ -196,8 +200,8 @@
         newMarker,
         true,
         "New",
-        "text-secondary-content/50",
-        "fill-secondary",
+        "text-error-content",
+        "fill-error",
       );
     });
 
@@ -207,8 +211,8 @@
       newMarker,
       false,
       "Original",
-      "text-primary-content/50",
-      "fill-primary",
+      "text-slate-800",
+      "fill-slate-600",
     );
 
     zoomToAllPoints(map, [oldCoordinates]);
@@ -308,13 +312,15 @@
                 class="w-full h-full rounded-box"
                 bind:this={mapContainer}
               >
-                <button
-                  class="btn btn-error btn-soft absolute bottom-2 right-2 z-20 shadow-2xl"
-                  onclick={resetCoordinates}
-                >
-                  <RotateCcw size={16} />
-                  <span>Reset</span>
-                </button>
+                {#if newMarker}
+                  <button
+                    class="btn btn-error btn-soft btn-sm absolute bottom-10 right-2 z-20 shadow-2xl"
+                    onclick={resetCoordinates}
+                  >
+                    <RotateCcw size={16} />
+                    <span>Reset</span>
+                  </button>
+                {/if}
               </div>
             </div>
             <div

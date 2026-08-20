@@ -32,3 +32,8 @@ body {
 body {
   font-family: "Outfit Variable", sans-serif;
 }
+
+/* Global map styles */
+.maplibregl-ctrl-attrib-inner {
+  font-size: 10px;
+}

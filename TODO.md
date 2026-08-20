@@ -26,7 +26,7 @@
 - [x] Refresh on results messes up map markers
 - [x] Theme switch requires refresh
 - [ ] Drag and zoom outside of image
-- [ ] Don't show images that the same user uploaded
+- [x] Don't show images that the same user uploaded
 
 ## Security
 
@@ -36,12 +36,14 @@
 
 ## Refactoring
 
+- [ ] Make the zoomable and pannable photo on /play its own component
+- [ ] Consolidate map.css files into one file
 - [ ] Use `const funcName = () => {...}` notation consistently across codebase
 - [ ] Move independent function files to the route that they are used in, unless used in multiple places
 - [ ] Totally redo the Avatar component
 - [ ] Move bulky functions outside of big components like `/game`, `/game/results`, and `/submit`
 - [ ] Have a user "session" stored so not making a bunch of calls to backend to check user's details
-- [ ] Theme constants are obsolete
+- [x] Theme constants are obsolete
 
 ## Future Release
 

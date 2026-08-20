@@ -2,6 +2,10 @@
   import SplitText from "$lib/components/sveltebits/SplitText.svelte";
 </script>
 
+<svelte:head>
+  <title>TechGuessr - About</title>
+</svelte:head>
+
 <div class="flex-1 flex flex-col place-items-center overflow-y-auto">
   <div class="max-w-200 h-full">
     <article class="prose mt-8 lg:mt-16 p-4 rounded-box bg-base-300">

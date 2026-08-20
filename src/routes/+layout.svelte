@@ -1,6 +1,5 @@
 <script lang="ts">
   import "./layout.css";
-  import favicon from "$lib/assets/favicon.svg";
   import Navbar from "$lib/components/Navbar.svelte";
   import ToastHost from "$lib/components/toast/ToastHost.svelte";
   import { SvelteTheme } from "svelte-themes";
@@ -9,9 +8,13 @@
 </script>
 
 <svelte:head
-  ><link rel="icon" href={favicon} />
+  ><link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>"
+  />
   <title>TechGuessr</title>
 </svelte:head>
+<!-- https://css-tricks.com/emoji-as-a-favicon/ -->
 
 <SvelteTheme
   themes={[

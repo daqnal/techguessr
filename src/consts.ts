@@ -20,10 +20,8 @@ export const CAMPUS_BOUNDS: LngLatBounds = new LngLatBounds(
   CAMPUS_NE_BOUND,
 );
 
-export const mapDarkBlue: string = "#7aa2f7";
-export const mapLightBlue: string = "#81a9ff";
-export const mapDarkYellow: string = "#efb100";
-export const mapLightYellow: string = "#ffdf20";
+export const mapBorder: string = "#81a9ff";
+export const mapFill: string = "#45556c";
 
 export type Photo = {
   id: string;
@@ -55,23 +53,3 @@ export type Theme = {
   id: string;
   name: string;
 };
-
-export const themes: Theme[] = [
-  { id: "tokyonight", name: "Tokyo Night" },
-  { id: "emerald", name: "Emerald" },
-  { id: "dracula", name: "Dracula" },
-  { id: "synthwave", name: "Synthwave" },
-  { id: "andromeda", name: "Andromeda" },
-  { id: "ayudark", name: "Ayu Dark " },
-  { id: "catppuccin", name: "Catppuccin" },
-  { id: "everforest", name: "Everforest" },
-  { id: "flexoki", name: "Flexoki" },
-  { id: "gruvbox", name: "Gruvbox" },
-  { id: "kanagawa", name: "Kanagawa" },
-  { id: "monokai", name: "Monokai" },
-  { id: "nightfox", name: "Nightfox" },
-  { id: "nightowl", name: "Nightowl" },
-  { id: "onedarkpro", name: "One Dark Pro" },
-  { id: "rosepine", name: "Rose Pine" },
-  { id: "solarized", name: "Solarized" },
-];

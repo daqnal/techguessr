@@ -1,5 +1,5 @@
-import { mapDarkBlue, mapLightBlue, mapDarkYellow } from "../../consts";
-import { LngLatBounds, Marker, type LngLat, type Map } from "maplibre-gl";
+import { mapBorder, mapFill } from "../../consts";
+import { Marker, type LngLat, type Map } from "maplibre-gl";
 import { calculateBounds } from "./calculateBounds";
 import { mount } from "svelte";
 import PinMarker from "$lib/components/map/PinMarker.svelte";
@@ -22,11 +22,11 @@ export const setGuessMarker = (
     "h-8",
     "rounded-full",
     "border-3",
+    "border-slate-800",
     "flex",
     "place-content-center",
     "place-items-center",
   );
-  el.style.borderColor = mapDarkBlue;
 
   if (avatarUrl) {
     const img = document.createElement("img");
@@ -36,7 +36,7 @@ export const setGuessMarker = (
     img.classList.add("w-7", "h-7", "rounded-full");
     el.appendChild(img);
   } else {
-    el.style.backgroundColor = `${mapLightBlue}cc`;
+    el.classList.add("background-slate-600");
   }
 
   const marker = new Marker({
@@ -55,8 +55,8 @@ export const setAnswerMarker = (
   answerMarker?: Marker | undefined,
   removeOld = true,
   label?: string,
-  colorClass?: string,
-  fillClass?: string,
+  colorClass = "text-slate-800",
+  fillClass = "fill-slate-600",
 ) => {
   if (!map) return;
 
@@ -69,6 +69,7 @@ export const setAnswerMarker = (
     props: {
       label,
       size: 36,
+      strokeWidth: 2,
       colorClass,
       fillClass,
     },
@@ -77,7 +78,7 @@ export const setAnswerMarker = (
   const marker = new Marker({
     element: el,
     anchor: "bottom",
-    offset: label ? [0, 20] : [0, 0],
+    offset: label ? [0, 20] : [0, 1],
   })
     .setLngLat(lngLat)
     .addTo(map!);
@@ -121,9 +122,10 @@ export const setMapLines = (
       "line-join": "round",
     },
     paint: {
-      "line-color": mapDarkYellow,
+      "line-color": mapFill,
       "line-width": 3,
       "line-opacity": 0.9,
+      "line-dasharray": [2, 2],
     },
   });
 };

@@ -5,6 +5,7 @@
   import { onMount, onDestroy, tick } from "svelte";
   import * as ml from "maplibre-gl";
   import "maplibre-gl/dist/maplibre-gl.css";
+  import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
   import "./map.css";
   import calculateResults from "$lib/functions/calculateResults";
   import type { Photo, GameState } from "../../consts";
@@ -22,6 +23,8 @@
     setGuessMarker,
     setMapLines,
   } from "$lib/functions/mapUtils";
+
+  ml.setWorkerUrl(workerUrl);
 
   let game: GameState = $state({
     id: crypto.randomUUID(),
@@ -56,8 +59,13 @@
   let score: number = $state(0);
 
   const loadPhotos = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     const { data, error } = await supabase.rpc("get_random_photos", {
       photo_count: IMAGE_COUNT,
+      exclude_user_id: user?.id ?? null,
     });
 
     if (error) {
@@ -171,7 +179,12 @@
       minZoom: 12,
       maxZoom: 20,
       maxBounds: CAMPUS_BOUNDS,
-    });
+      attributionControl: false,
+    }).addControl(
+      new ml.AttributionControl({
+        compact: true,
+      }),
+    );
 
     map.on("load", () => {
       answerMarker = setAnswerMarker(answer, map, answerMarker);
@@ -227,7 +240,12 @@
       minZoom: 12,
       maxZoom: 20,
       maxBounds: CAMPUS_BOUNDS,
-    });
+      attributionControl: false,
+    }).addControl(
+      new ml.AttributionControl({
+        compact: true,
+      }),
+    );
 
     map?.on("click", (e) => {
       guess = e.lngLat;

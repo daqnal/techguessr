@@ -13,8 +13,8 @@
     label,
     size = 36,
     strokeWidth = 1,
-    colorClass = "text-primary",
-    fillClass = "fill-primary/50",
+    colorClass,
+    fillClass,
   }: Props = $props();
 </script>
 
@@ -25,7 +25,7 @@
 
   {#if label}
     <span
-      class="badge badge-neutral badge-xs mt-0.5 shadow-sm whitespace-nowrap"
+      class="badge badge-slate-800 text-slate-200 badge-xs mt-0.5 shadow-sm whitespace-nowrap"
     >
       {label}
     </span>
