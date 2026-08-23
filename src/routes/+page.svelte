@@ -3,34 +3,25 @@
   import SplitText from "$lib/components/sveltebits/SplitText.svelte";
   import { supabase } from "$lib/supabaseClient";
   import { onMount } from "svelte";
-  import { IMAGE_COUNT, type Photo } from "../consts";
-  import { toast } from "$lib/components/toast/toast.svelte";
 
+  const filenames = [
+    "parking_deck.webp",
+    "nav.webp",
+    "heffernan.webp",
+    "library.webp",
+    "it.webp",
+  ];
+
+  let loaded = $state<boolean[]>(new Array(5).fill(false));
   let pubUrls: string[] = $state([]);
 
   onMount(async () => {
-    const { data, error } = await supabase.rpc("get_random_photos", {
-      photo_count: IMAGE_COUNT,
-      exclude_user_id: null,
-    });
-
-    if (error) {
-      toast(error.message, "error");
-      return;
-    } else if (data.length === 0) {
-      toast("No photos :(", "error");
-      return;
-    }
-
-    for (let i = 0; i < IMAGE_COUNT; i++) {
-      const photo = data[i];
-
-      const { data: pubData } = supabase.storage
+    pubUrls = filenames.map((f) => {
+      const { data } = supabase.storage
         .from("photos")
-        .getPublicUrl(photo.storage_path);
-
-      pubUrls.push(pubData.publicUrl);
-    }
+        .getPublicUrl(`root_page/${f}`);
+      return data.publicUrl;
+    });
   });
 </script>
 
@@ -58,6 +49,7 @@
         containerWidth={400}
         enableHover={true}
         class="border-primary"
+        bind:loaded
       />
     </div>
 

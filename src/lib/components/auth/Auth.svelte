@@ -1,6 +1,7 @@
 <script lang="ts">
   import { supabase } from "../../supabaseClient";
   import { toast } from "../toast/toast.svelte";
+  import { Theme } from "svelte-themes";
 
   let authType: string = $state("login");
   let loginLoading = $state(false);
@@ -19,16 +20,16 @@
 
     if (error) {
       toast(error.message, "error");
-      return;
+    } else {
+      localStorage.setItem("loggedIn", "true");
     }
-
-    localStorage.setItem("loggedIn", "true");
     loginLoading = false;
   };
 
   const handleSignup = async () => {
     signupLoading = true;
 
+    // Create user in Supabase Auth
     const { data, error } = await supabase.auth.signUp({ email, password });
 
     if (error) {
@@ -41,16 +42,37 @@
       return;
     }
 
-    const { error: usernameError } = await supabase
+    // Create profile row
+    const { error: profileError } = await supabase
       .from("profiles")
-      .update({ username: username })
+      .upsert({
+        id: data.user.id,
+        username: username,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", data.user.id);
 
-    if (usernameError) {
-      toast(usernameError.message, "error");
-    } else {
-      toast("Account created successfully", "success");
+    if (profileError) {
+      toast(profileError.message, "error");
+      signupLoading = false;
+      return;
     }
+
+    // Create default settings row
+    const { error: settingsError } = await supabase.from("settings").upsert({
+      user_id: data.user.id,
+      theme: "system",
+      unit_system: localStorage.getItem("unitSystem") ?? "metric",
+      updated_at: new Date().toISOString(),
+    });
+
+    if (settingsError) {
+      toast(settingsError.message, "error");
+      signupLoading = false;
+      return;
+    }
+
+    toast("Account created successfully", "success");
     signupLoading = false;
   };
 </script>

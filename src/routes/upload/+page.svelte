@@ -190,30 +190,43 @@
     );
 
     map?.on("click", (e) => {
-      if (!selected) return;
-
-      selected.lng = e.lngLat.lng;
-      selected.lat = e.lngLat.lat;
+      if (!selected) {
+        selected = {
+          id: "",
+          storage_path: "",
+          publicUrl: "",
+          lat: e.lngLat.lat,
+          lng: e.lngLat.lng,
+          status: "pending",
+          comment: comment ?? undefined,
+          created_at: new Date().toISOString(),
+        };
+      } else {
+        selected.lat = e.lngLat.lat;
+        selected.lng = e.lngLat.lng;
+      }
       newMarker = setAnswerMarker(
-        new LngLat(selected.lng, selected.lat),
+        new LngLat(selected?.lng ?? 0, selected?.lat ?? 0),
         map,
         newMarker,
         true,
-        "New",
+        undefined,
         "text-error-content",
         "fill-error",
       );
     });
 
-    oldMarker = setAnswerMarker(
-      new LngLat(selected?.lng ?? 0, selected?.lat ?? 0),
-      map,
-      newMarker,
-      false,
-      "Original",
-      "text-slate-800",
-      "fill-slate-600",
-    );
+    if (oldCoordinates) {
+      oldMarker = setAnswerMarker(
+        new LngLat(selected?.lng ?? 0, selected?.lat ?? 0),
+        map,
+        newMarker,
+        false,
+        "Original",
+        "text-slate-800",
+        "fill-slate-600",
+      );
+    }
 
     zoomToAllPoints(map, [oldCoordinates]);
   };
@@ -324,15 +337,15 @@
               </div>
             </div>
             <div
-              class="flex-1 relative min-w-0 min-h-0 h-full place-content-center place-items-center bg-base-100 rounded-box"
+              class="flex-1 relative min-w-0 min-h-0 h-full place-content-center place-items-center bg-base-100 rounded-box object-contain"
             >
               <div
-                class="absolute top-1/2 -translate-y-1/2 left-0 w-full max-h-full h-fit object-contain flex place-content-center place-items-center"
+                class="absolute inset-0 flex items-center justify-center overflow-hidden rounded-box"
               >
                 <img
                   src={selected ? selected.publicUrl : previewUrl}
                   alt="Preview"
-                  class="h-full object-contain rounded-box"
+                  class="w-fit max-w-full h-fit max-h-full object-contain rounded-box"
                 />
               </div>
             </div>
@@ -468,7 +481,7 @@
 
 <!-- Rules modal -->
 <dialog class="modal {showRulesModal && 'modal-open'}">
-  <div class="modal-box flex flex-col gap-4 max-h-[90vh]">
+  <div class="modal-box flex flex-col gap-4 max-h-[80vh]">
     <article class="prose overflow-y-auto">
       <h1 class="text-center">Submission Rules</h1>
       <h2>Do:</h2>

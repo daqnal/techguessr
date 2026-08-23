@@ -1,0 +1,1 @@
+import{et as e}from"./qQCHyD-O.js";var t=0,n=e({toasts:[]});function r(e,r=`info`,i=7e3){let a={id:++t,message:e,type:r};n.toasts=[...n.toasts,a],setTimeout(()=>{n.toasts=n.toasts.filter(e=>e.id!==a.id)},i)}function i(e){n.toasts=n.toasts.filter(t=>t.id!==e)}export{r as n,n as r,i as t};

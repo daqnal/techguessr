@@ -6,6 +6,7 @@ export const loadAvatar = async () => {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
+    console.log("Error fetching user");
     return null;
   }
 
@@ -14,6 +15,10 @@ export const loadAvatar = async () => {
     .select("avatar_url")
     .eq("id", user.id)
     .single();
+
+  if (!profile?.avatar_url) {
+    return null;
+  }
 
   const { data, error } = await supabase.storage
     .from("avatars")

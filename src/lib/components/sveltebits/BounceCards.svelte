@@ -12,6 +12,7 @@
     easeType?: string;
     transformStyles?: string[];
     enableHover?: boolean;
+    loaded?: boolean[];
   };
 
   let {
@@ -30,6 +31,8 @@
       "rotate(2deg) translate(170px)",
     ],
     enableHover = false,
+    loaded = $bindable(new Array(images.length).fill(true)),
+    // loaded = new Array(images.length).fill(true),
   }: Props = $props();
 
   let containerRef: HTMLDivElement;
@@ -117,7 +120,7 @@
 >
   {#each images as src, idx (idx)}
     <div
-      class="bc-card bc-card-{idx} absolute w-[300px] border-8 border-neutral-content rounded-box overflow-hidden"
+      class="bc-card bc-card-{idx} absolute w-[300px] min-h-[225px] border-8 border-neutral-content rounded-box overflow-hidden"
       style="box-shadow:0 4px 10px rgba(0,0,0,0.2); transform:{transformStyles[
         idx
       ] || 'none'};"
@@ -125,7 +128,19 @@
       onmouseleave={resetSiblings}
       role="presentation"
     >
-      <img class="w-full h-full object-cover" {src} alt="card-{idx}" />
+      {#if !loaded[idx]}
+        <div class="skeleton absolute inset-0 w-full h-full"></div>
+      {/if}
+
+      <img
+        class="w-full h-full object-cover {loaded[idx]
+          ? 'opacity-100'
+          : 'opacity-0'}"
+        {src}
+        alt="card-{idx}"
+        onload={() => (loaded[idx] = true)}
+        loading="lazy"
+      />
     </div>
   {/each}
 </div>

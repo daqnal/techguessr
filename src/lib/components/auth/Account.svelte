@@ -39,32 +39,28 @@
       username = data.username;
       avatarUrl = data.avatar_url;
     }
+
     loading = false;
   };
 
   const updateProfile = async () => {
-    try {
-      loading = true;
-      const { user } = session;
+    loading = true;
+    const { user } = session;
 
-      const updates = {
-        id: user.id,
-        username,
-        updated_at: new Date().toISOString(),
-      };
+    const updates = {
+      id: user.id,
+      username,
+      updated_at: new Date().toISOString(),
+    };
 
-      const { error } = await supabase.from("profiles").upsert(updates);
+    const { error } = await supabase.from("profiles").upsert(updates);
 
-      if (error) {
-        throw error;
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
-      }
-    } finally {
-      loading = false;
+    if (error) {
+      toast(error.message, "error");
+    } else {
+      toast("Profile updated successfully", "success");
     }
+    loading = false;
   };
 
   const handleSignout = async () => {
@@ -102,8 +98,6 @@
           updateProfile();
         }}
       >
-        <!-- <span class="font-bold text-xl text-center">{session.user.email}</span> -->
-
         <Avatar
           {supabase}
           bind:url={avatarUrl}
@@ -130,6 +124,7 @@
               class="input"
               type="text"
               placeholder="Username"
+              pattern="[A-Za-z][A-Za-z0-9\-]*"
               bind:value={username}
             />
             <span>Username</span>

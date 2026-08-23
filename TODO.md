@@ -27,6 +27,12 @@
 - [x] Theme switch requires refresh
 - [ ] Drag and zoom outside of image
 - [x] Don't show images that the same user uploaded
+- [x] Use preset home page photos at optimized resolution
+- [x] Map doesn't show up when logged in
+- [x] Profile not created on account creation
+- [ ] Username does not show up on signup until refresh
+- [x] Failed login attempt loads infinitely
+- [x] Settings and profile rows are not created on signup
 
 ## Security
 

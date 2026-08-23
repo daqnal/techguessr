@@ -247,6 +247,8 @@
       }),
     );
 
+    console.log(avatarUrl);
+
     map?.on("click", (e) => {
       guess = e.lngLat;
       guessMarker = setGuessMarker(guess, map, avatarUrl, guessMarker, true);
