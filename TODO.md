@@ -54,6 +54,11 @@
 - [ ] Have a user "session" stored so not making a bunch of calls to backend to check user's details
 - [x] Theme constants are obsolete
 
+## Performance & Efficiency
+
+- [ ] Score 100 on Lighthouse
+- [ ] Load photos one by one asyncronously on upload page
+
 ## Future Release
 
 - Difficulty rating for each image

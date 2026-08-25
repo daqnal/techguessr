@@ -348,7 +348,7 @@
               </div>
             </div>
             <div
-              class="flex-1 relative min-w-0 min-h-0 h-full place-content-center place-items-center bg-base-100 rounded-box object-contain"
+              class="flex-1 relative min-w-0 min-h-0 h-full place-content-center place-items-center bg-base-300 rounded-box object-contain"
             >
               <div
                 class="absolute inset-0 flex items-center justify-center overflow-hidden rounded-box"
