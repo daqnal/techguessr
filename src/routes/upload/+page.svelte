@@ -176,7 +176,7 @@
       });
       selected = null;
       previewUrl = null;
-      toast("Delete image successfully", "success");
+      toast("Deleted image successfully", "success");
     }
   };
 
