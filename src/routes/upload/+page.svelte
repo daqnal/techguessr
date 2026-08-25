@@ -16,13 +16,13 @@
   import { setAnswerMarker, zoomToAllPoints } from "$lib/functions/mapUtils";
   import { destroyMap } from "$lib/functions/destroyMap";
 
+  let center = new LngLat(CAMPUS_CENTER.lng, CAMPUS_CENTER.lat);
+
   let photos = $state<Photo[]>([]);
   let selected = $state<Photo | null>(null);
-  let oldCoordinates: LngLat;
   let previewUrl = $state<string | null>(null);
   let pendingFile = $state<File | null>(null);
-  let gps: LngLat | null = $state(new LngLat(0, 0));
-  let comment: string | null = $state(null);
+  let oldCoordinates = $state<LngLat | undefined>(undefined);
   let uploading = $state(false);
   let showRulesModal: boolean = $state(false);
 
@@ -72,20 +72,30 @@
     if (!file) return;
 
     pendingFile = file;
-    let gpsData = await extractGps(file);
-    if (gpsData) {
-      gps = gpsData;
-    } else {
-      gps = new LngLat(0, 0);
-    }
     previewUrl = URL.createObjectURL(file);
-    selected = null;
+
+    const gpsData = await extractGps(file);
+    const initialLat = gpsData?.lat ?? CAMPUS_CENTER.lat;
+    const initialLng = gpsData?.lng ?? CAMPUS_CENTER.lng;
+
+    // Create a temporary selected object for the new upload so the UI
+    // (preview, map, inputs) always read from `selected`.
+    selected = {
+      id: null,
+      storage_path: "",
+      lat: initialLat,
+      lng: initialLng,
+      status: "pending",
+      comment: null,
+      created_at: new Date().toISOString(),
+      publicUrl: previewUrl,
+    } as unknown as Photo;
+    oldCoordinates = undefined;
   }
 
   async function submitUpload() {
     if (!pendingFile) return;
-
-    if (!gps?.lat || !gps?.lng) {
+    if (!selected || selected?.lat === 0 || selected?.lng === 0) {
       toast("Add coordinates to submit", "error");
       return;
     }
@@ -98,11 +108,16 @@
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Not logged in");
 
-      await uploadPhoto(supabase, user.id, pendingFile, gps, comment);
+      await uploadPhoto(
+        supabase,
+        user.id,
+        pendingFile,
+        new LngLat(selected.lng ?? 0, selected.lat ?? 0),
+        selected.comment ?? null,
+      );
       pendingFile = null;
       previewUrl = null;
-      gps = null;
-      comment = null;
+      selected = null;
       await loadPhotos();
     } catch (e) {
       toast(e instanceof Error ? e.message : "Upload failed", "error");
@@ -111,9 +126,8 @@
     }
   }
 
-  const savePhotoData = async () => {
+  const updatePhoto = async () => {
     if (!selected) return;
-
     if (!selected.lat || isNaN(selected.lat)) {
       if (!selected.lng || isNaN(selected.lng)) {
         toast("Invalid latitude and longitude", "error");
@@ -139,16 +153,11 @@
       toast(err.message, "error");
     } else {
       toast("Photo updated successfully", "success");
-      zoomToAllPoints(map, [
-        oldCoordinates,
-        new LngLat(selected.lng ?? 0, selected.lat ?? 0),
-      ]);
+      map?.remove();
+      oldCoordinates = new LngLat(selected.lng ?? 0, selected.lat ?? 0);
+      createMap();
       await loadPhotos();
     }
-
-    map?.remove();
-    oldCoordinates = new LngLat(selected.lng ?? 0, selected.lat ?? 0);
-    createMap();
   };
 
   const deletePhoto = async () => {
@@ -190,23 +199,13 @@
     );
 
     map?.on("click", (e) => {
-      if (!selected) {
-        selected = {
-          id: "",
-          storage_path: "",
-          publicUrl: "",
-          lat: e.lngLat.lat,
-          lng: e.lngLat.lng,
-          status: "pending",
-          comment: comment ?? undefined,
-          created_at: new Date().toISOString(),
-        };
-      } else {
-        selected.lat = e.lngLat.lat;
-        selected.lng = e.lngLat.lng;
-      }
+      // Update the selected coordinates (unsaved) when the user clicks the map
+      if (!selected) return;
+      selected.lng = e.lngLat.lng;
+      selected.lat = e.lngLat.lat;
+
       newMarker = setAnswerMarker(
-        new LngLat(selected?.lng ?? 0, selected?.lat ?? 0),
+        e.lngLat,
         map,
         newMarker,
         true,
@@ -215,6 +214,12 @@
         "fill-error",
       );
     });
+
+    // If we opened the map editing an existing photo, remember its original
+    // coordinates so Reset can restore them.
+    if (selected && selected.id) {
+      oldCoordinates = new LngLat(selected.lng ?? 0, selected.lat ?? 0);
+    }
 
     if (oldCoordinates) {
       oldMarker = setAnswerMarker(
@@ -226,26 +231,32 @@
         "text-slate-800",
         "fill-slate-600",
       );
-    }
 
-    zoomToAllPoints(map, [oldCoordinates]);
+      zoomToAllPoints(map, [oldCoordinates]);
+    } else {
+      zoomToAllPoints(map, [center]);
+    }
   };
 
   const resetCoordinates = () => {
     newMarker?.remove();
     newMarker = undefined;
 
-    zoomToAllPoints(map, [oldCoordinates]);
+    if (oldCoordinates !== undefined) {
+      zoomToAllPoints(map, [oldCoordinates]);
 
-    if (selected) {
-      selected.lng = oldCoordinates.lng;
-      selected.lat = oldCoordinates.lat;
+      if (selected) {
+        selected.lng = oldCoordinates.lng;
+        selected.lat = oldCoordinates.lat;
+      }
+    } else {
+      zoomToAllPoints(map, [center]);
     }
   };
 
   $effect(() => {
     const container = mapContainer;
-    const hasContent = !!(selected || pendingFile);
+    const hasContent = !!selected;
 
     if (hasContent && container) {
       const id = requestAnimationFrame(() => {
@@ -317,7 +328,7 @@
   <div class="flex-2 flex flex-col">
     <div class="flex-1 flex flex-col bg-base-200 rounded-box gap-4 min-h-0">
       <div class="flex-1 flex flex-col p-2 gap-4">
-        {#if selected || pendingFile}
+        {#if selected}
           <div class="flex-1 flex w-full place-items-center min-h-0 gap-4">
             <div class="flex-1 h-full">
               <div
@@ -385,47 +396,14 @@
                 ></textarea>
                 <span>Comments</span>
               </label>
-            {:else if pendingFile && gps}
-              <div class="flex gap-4 lg:flex-col lg:min-w-64">
-                <label class="floating-label flex-1">
-                  <span>Latitude</span>
-                  <input
-                    class="w-full input input-bordered input-sm"
-                    type="number"
-                    step="any"
-                    placeholder="Latitude"
-                    bind:value={gps.lat}
-                    required
-                  />
-                </label>
-                <label class="floating-label flex-1">
-                  <span>Longitude</span>
-                  <input
-                    class="w-full input input-bordered input-sm"
-                    type="number"
-                    step="any"
-                    placeholder="lngitude"
-                    bind:value={gps.lng}
-                    required
-                  />
-                </label>
-              </div>
-              <label class="w-full floating-label">
-                <textarea
-                  placeholder="Comments (optional)"
-                  class="textarea w-full"
-                  bind:value={comment}
-                ></textarea>
-                <span>Comments</span>
-              </label>
             {/if}
 
-            <div class="flex gap-2 lg:flex-col lg:min-w-48">
-              {#if selected}
+            {#if selected && !pendingFile}
+              <div class="flex gap-2 lg:flex-col lg:min-w-48">
                 <button
                   class="flex-1 btn btn-sm btn-primary"
                   type="button"
-                  onclick={savePhotoData}
+                  onclick={updatePhoto}
                 >
                   <Save size={16} />
                   <span>Save</span>
@@ -438,8 +416,8 @@
                   <Trash size={16} />
                   <span>Delete</span>
                 </button>
-              {/if}
-            </div>
+              </div>
+            {/if}
           </div>
 
           <hr class="text-base-100 border-t-4 rounded-full" />

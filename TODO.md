@@ -33,6 +33,9 @@
 - [ ] Username does not show up on signup until refresh
 - [x] Failed login attempt loads infinitely
 - [x] Settings and profile rows are not created on signup
+- [x] Marker not placed if image does have GPS data
+- [x] Buggy on first map click
+- [x] Neither map nor image loads on refresh
 
 ## Security
 

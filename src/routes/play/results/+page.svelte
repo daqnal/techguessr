@@ -23,6 +23,7 @@
     setMapLines,
     zoomToAllPoints,
   } from "$lib/functions/mapUtils";
+  import CountUp from "$lib/components/sveltebits/CountUp.svelte";
 
   let map: Map | undefined;
   let mapContainer: HTMLDivElement;
@@ -173,7 +174,13 @@
     <div class="h-24 flex flex-col place-content-center place-items-center">
       {#if selectedRoundIndex === undefined}
         <h3>Total Score</h3>
-        <h2 class="text-6xl text-center font-black">{totalScore}</h2>
+        <CountUp
+          from={0}
+          to={totalScore}
+          separator=","
+          class="text-6xl font-black"
+          duration={0.5}
+        />
       {:else}
         <h3>Round {selectedRoundIndex + 1}</h3>
         <h2 class="text-6xl text-center font-black">
