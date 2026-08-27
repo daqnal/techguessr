@@ -336,12 +336,12 @@
       <div class="w-full flex place-content-between place-items-end p-2">
         <div></div>
         <div
-          class="flex flex-col gap-2 w-[25vw] min-h-[35vh] pointer-events-auto"
+          class="flex flex-col gap-2 w-[25vw] min-w-75 h-[35vh] min-h-75 pointer-events-auto"
         >
           <div
             id="map-guess-container"
             bind:this={mapGuessContainer}
-            class="top-0 left-0 w-[25vw] h-[30vh] rounded-box flex"
+            class="bottom-0 right-0 w-full flex-1 rounded-box flex"
           ></div>
           <button
             type="button"
