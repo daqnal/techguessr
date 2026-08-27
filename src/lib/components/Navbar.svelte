@@ -40,14 +40,16 @@
 </script>
 
 <nav class="flex justify-between place-items-center p-2 bg-base-300 z-50">
-  <div class="h-fit flex place-items-center gap-1">
+  <div class="h-fit hidden sm:flex place-items-center gap-1">
     <a href="/" class="btn btn-ghost text-lg font-black">
       <span>TechGuessr</span>
       <span class="badge badge-accent font-normal badge-xs">ALPHA</span>
     </a>
   </div>
   <div>
-    <ul class="menu menu-horizontal bg-base-200 rounded-box p-0">
+    <ul
+      class="menu menu-xs sm:menu-sm md:menu-md menu-horizontal bg-base-200 rounded-box p-0"
+    >
       <li class={page.url.pathname === "/" ? "menu-disabled" : ""}>
         <a href="/" class="rounded-box">Home</a>
       </li>
@@ -61,10 +63,10 @@
       {/if}
     </ul>
   </div>
-  <div class="flex gap-2 pr-2">
+  <div class="flex place-items-center gap-2 pr-2">
     <a
       href="/about"
-      class="btn btn-primary btn-circle btn-sm tooltip tooltip-bottom"
+      class="btn btn-primary btn-circle btn-xs sm:btn-sm tooltip tooltip-bottom"
       data-tip="About"
     >
       <Info size={16} />
@@ -72,7 +74,7 @@
 
     <a
       href="/settings"
-      class="btn btn-primary btn-circle btn-sm tooltip tooltip-bottom"
+      class="btn btn-primary btn-circle btn-xs sm:btn-sm tooltip tooltip-bottom"
       data-tip="Settings"
     >
       <Settings size={16} />
@@ -85,7 +87,7 @@
     {:else}
       <a
         href="/auth"
-        class="btn btn-primary btn-circle btn-sm tooltip tooltip-bottom"
+        class="btn btn-primary btn-circle btn-xs sm:btn-sm tooltip tooltip-bottom"
         data-tip="Account"
       >
         <User size={16} />

@@ -5,8 +5,6 @@
   type Props = {
     class?: string;
     images?: string[];
-    containerWidth?: number;
-    containerHeight?: number;
     animationDelay?: number;
     animationStagger?: number;
     easeType?: string;
@@ -18,8 +16,6 @@
   let {
     class: className = "",
     images = [],
-    containerWidth = 400,
-    containerHeight = 400,
     animationDelay = 0.5,
     animationStagger = 0.06,
     easeType = "elastic.out(1, 0.8)",
@@ -86,7 +82,13 @@
           overwrite: "auto",
         });
       } else {
-        const offsetX = i < hoveredIdx ? -160 : 160;
+        let offsetX = 0;
+        if (window.innerWidth >= 768) {
+          offsetX = i < hoveredIdx ? -160 : 160;
+        } else {
+          offsetX = i < hoveredIdx ? -80 : 80;
+        }
+
         gsap.to(selector, {
           transform: getPushedTransform(base, offsetX),
           duration: 0.4,
@@ -116,11 +118,10 @@
 <div
   bind:this={containerRef}
   class="relative flex items-center justify-center {className}"
-  style="width:{containerWidth}px;height:{containerHeight}px;"
 >
   {#each images as src, idx (idx)}
     <div
-      class="bc-card bc-card-{idx} absolute w-[300px] min-h-[225px] border-8 border-neutral-content rounded-box overflow-hidden"
+      class="bc-card bc-card-{idx} absolute w-48 min-h-36 md:w-64 md:min-h-48 lg:w-84 lg:min-h-63 border-8 border-neutral-content bg-neutral-content rounded-box overflow-hidden"
       style="box-shadow:0 4px 10px rgba(0,0,0,0.2); transform:{transformStyles[
         idx
       ] || 'none'};"

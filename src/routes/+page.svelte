@@ -27,23 +27,22 @@
 
 <div class="w-full h-full relative">
   <div
-    class="w-fit absolute top-1/2 left-1/2 -translate-1/2 pointer-events-auto"
+    class="w-fit absolute top-1/2 left-1/2 -translate-1/2 pt-12 pointer-events-auto"
   >
     <BounceCards
       images={pubUrls}
       animationDelay={0.4}
       animationStagger={0.08}
       enableHover={true}
-      class="border-primary"
       bind:loaded
     />
   </div>
 
   <div
-    class="w-fit h-full absolute left-1/2 -translate-x-1/2 flex flex-col place-content-center text-center gap-4 lg:place-content-between py-8 pointer-events-none"
+    class="w-full max-w-132 h-full absolute left-1/2 -translate-x-1/2 flex flex-col place-content-between text-center gap-4 px-2 py-8 pointer-events-none"
   >
     <div
-      class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl bg-base-300/75 lg:bg-base-100/90 p-3 rounded-box shadow-2xl lg:shadow-none"
+      class="text-5xl md:text-6xl lg:text-7xl bg-base-100/90 p-3 rounded-box"
     >
       <span class="font-medium -mr-2">
         <SplitText text="Tech" class="overflow-x-visible" delay={50} />
@@ -61,7 +60,7 @@
       <div
         class="aura hover:aura-lg aura-rainbow duration-4000 rounded-full pointer-events-auto"
       >
-        <a href="/play" class="btn btn-xl rounded-full">Play now!</a>
+        <a href="/play" class="btn btn-lg sm:btn-xl rounded-full">Play now!</a>
       </div>
     </div>
   </div>

@@ -68,6 +68,8 @@
       exclude_user_id: user?.id ?? null,
     });
 
+    console.log(data);
+
     if (error) {
       toast(error.message, "error");
       return;
