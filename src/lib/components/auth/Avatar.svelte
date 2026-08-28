@@ -108,7 +108,7 @@
   {:else if avatarUrl}
     <a
       href="/auth"
-      class="btn btn-primary btn-circle w-8 h-8 rounded-full p-0.5"
+      class="btn btn-primary btn-circle btn-xs sm:btn-sm rounded-full p-0.5"
     >
       <img
         src={avatarUrl}

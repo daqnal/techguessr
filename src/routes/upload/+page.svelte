@@ -15,6 +15,7 @@
   import "./map.css";
   import { setAnswerMarker, zoomToAllPoints } from "$lib/functions/mapUtils";
   import { destroyMap } from "$lib/functions/destroyMap";
+  import { innerWidth } from "svelte/reactivity/window";
 
   let center = new LngLat(CAMPUS_CENTER.lng, CAMPUS_CENTER.lat);
 
@@ -25,6 +26,7 @@
   let oldCoordinates = $state<LngLat | undefined>(undefined);
   let uploading = $state(false);
   let showRulesModal: boolean = $state(false);
+  let showMobileMap: boolean = $state(false);
 
   let mapContainer: HTMLDivElement;
   let map: Map | undefined;
@@ -280,7 +282,7 @@
   <title>TechGuessr - Submit Photos</title>
 </svelte:head>
 
-<div class="flex flex-1 gap-4 p-2 overflow-hidden">
+<div class="flex flex-1 flex-col sm:flex-row gap-2 p-2 overflow-hidden">
   <div class="flex-1 bg-base-200 rounded-box overflow-hidden flex flex-col">
     <h2 class="text-xl text-center font-bold my-4">Submitted Photos</h2>
     <div
@@ -330,7 +332,10 @@
       <div class="flex-1 flex flex-col p-2 gap-4">
         {#if selected}
           <div class="flex-1 flex w-full place-items-center min-h-0 gap-4">
-            <div class="flex-1 h-full">
+            <div
+              class="{(innerWidth.current ?? 0) < 768 &&
+                'hidden'} flex-1 h-full"
+            >
               <div
                 id="map-container"
                 class="w-full h-full rounded-box"
@@ -358,6 +363,26 @@
                   alt="Preview"
                   class="w-fit max-w-full h-fit max-h-full object-contain rounded-box"
                 />
+                <div
+                  class="{showMobileMap &&
+                    'hidden'} fixed top-1/2 left-1/2 -translate-1/2"
+                >
+                  <div
+                    id="map-container"
+                    class="w-full h-full rounded-box"
+                    bind:this={mapContainer}
+                  >
+                    {#if newMarker}
+                      <button
+                        class="btn btn-error btn-soft btn-sm absolute bottom-10 right-2 z-20 shadow-2xl"
+                        onclick={resetCoordinates}
+                      >
+                        <RotateCcw size={16} />
+                        <span>Reset</span>
+                      </button>
+                    {/if}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -459,8 +484,10 @@
 
 <!-- Rules modal -->
 <dialog class="modal {showRulesModal && 'modal-open'}">
-  <div class="modal-box flex flex-col gap-4 max-h-[80vh]">
-    <article class="prose overflow-y-auto">
+  <div
+    class="modal-box flex flex-col rounded-box gap-4 p-2 sm:p-4 max-h-[80vh]"
+  >
+    <article class="prose prose-sm sm:prose-base overflow-y-auto pr-2">
       <h1 class="text-center">Submission Rules</h1>
       <h2>Do:</h2>
       <ul class="list-(--check)">

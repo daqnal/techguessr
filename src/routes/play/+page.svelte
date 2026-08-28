@@ -162,10 +162,7 @@
 
     if (activePointers.size === 2 && frame) {
       const [first, second] = [...activePointers.values()];
-      pinchStartDistance = Math.hypot(
-        second.x - first.x,
-        second.y - first.y,
-      );
+      pinchStartDistance = Math.hypot(second.x - first.x, second.y - first.y);
       pinchStartScale = scale;
       const rect = frame.getBoundingClientRect();
       pinchStartCenter = {
@@ -187,10 +184,7 @@
 
     if (activePointers.size >= 2 && frame) {
       const [first, second] = [...activePointers.values()];
-      const distance = Math.hypot(
-        second.x - first.x,
-        second.y - first.y,
-      );
+      const distance = Math.hypot(second.x - first.x, second.y - first.y);
       const ratio = distance / pinchStartDistance;
       const nextScale = Math.min(4, Math.max(1, pinchStartScale * ratio));
       const rect = frame.getBoundingClientRect();
@@ -199,10 +193,12 @@
         y: (first.y + second.y) / 2 - rect.top,
       };
 
-      x = center.x - (pinchStartCenter.x - pinchStartX) *
-        (nextScale / pinchStartScale);
-      y = center.y - (pinchStartCenter.y - pinchStartY) *
-        (nextScale / pinchStartScale);
+      x =
+        center.x -
+        (pinchStartCenter.x - pinchStartX) * (nextScale / pinchStartScale);
+      y =
+        center.y -
+        (pinchStartCenter.y - pinchStartY) * (nextScale / pinchStartScale);
       scale = nextScale;
       if (scale === 1) {
         x = 0;
@@ -445,11 +441,22 @@
               class=" w-full h-full rounded-box"
             ></div>
           </div>
-          <button
-            class="absolute bottom-2 right-2 btn btn-circle btn-success tooltip tooltip-left tooltip-success"
-            data-tip="Show Map"
-            onclick={() => (showMobileMap = !showMobileMap)}><Map /></button
-          >
+          <div class="absolute bottom-2 right-0 w-full flex gap-2 px-2">
+            <button
+              type="button"
+              class="flex-1 btn btn-success shadow-lg {guess.lng === 0 &&
+                'btn-disabled bg-success/50'}"
+              onclick={() => handleLockIn()}
+            >
+              <Lock size={16} />
+              <span class="font-black">LOCK IT IN</span>
+            </button>
+            <button
+              class="btn btn-circle btn-soft btn-success tooltip tooltip-left"
+              data-tip="Toggle Map"
+              onclick={() => (showMobileMap = !showMobileMap)}><Map /></button
+            >
+          </div>
         </div>
       {/if}
     {/if}

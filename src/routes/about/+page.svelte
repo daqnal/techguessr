@@ -6,7 +6,7 @@
   <title>TechGuessr - About</title>
 </svelte:head>
 
-<div class="flex-1 flex flex-col place-items-center overflow-y-auto">
+<div class="flex-1 flex flex-col place-items-center overflow-y-auto px-4">
   <div class="max-w-200 h-full">
     <article class="prose mt-8 lg:mt-16 p-4 rounded-box bg-base-300">
       <h1 class="text-5xl text-center -mb-12">

@@ -75,8 +75,8 @@
 
   const focusGuess = (i: number | undefined) => {
     if (selectedRoundIndex === i || i === undefined) {
-      selectedRoundIndex = undefined;
       zoomToAllPoints(map, points);
+      selectedRoundIndex = undefined;
     } else {
       selectedRoundIndex = i;
 
@@ -92,13 +92,13 @@
       bounds = new LngLatBounds();
       bounds.extend(answerCoords);
       bounds.extend(guessCoords);
-    }
 
-    map!.fitBounds(bounds, {
-      padding: { top: 48, bottom: 48, left: 48, right: 48 },
-      maxZoom: 17,
-      duration: 1000,
-    });
+      map!.fitBounds(bounds, {
+        padding: { top: 48, bottom: 48, left: 48, right: 48 },
+        maxZoom: 17,
+        duration: 1000,
+      });
+    }
   };
 
   // Get user and upload the game data to the backend
@@ -159,83 +159,87 @@
   });
 </script>
 
-<div class="flex-1 flex place-content-center place-items-center">
-  <div class="w-full max-w-xl flex flex-col gap-2">
-    <h1 class="tracking-wide text-4xl font-bold text-center">Results</h1>
+<div class="overflow-y-auto py-8 px-2">
+  <div class="flex-1 flex place-content-center place-items-center">
+    <div class="w-full max-w-xl flex flex-col gap-2">
+      <h1 class="tracking-wide text-4xl font-bold text-center">Results</h1>
 
-    <div class="w-full h-84 border-8 border-base-200 rounded-box overflow-clip">
       <div
-        id="map-results-container"
-        bind:this={mapContainer}
-        class="w-full h-full rounded-box"
-      ></div>
-    </div>
+        class="w-full h-84 border-8 border-base-200 rounded-box overflow-clip"
+      >
+        <div
+          id="map-results-container"
+          bind:this={mapContainer}
+          class="w-full h-full rounded-box"
+        ></div>
+      </div>
 
-    <div class="h-24 flex flex-col place-content-center place-items-center">
-      {#if selectedRoundIndex === undefined}
-        <h3>Total Score</h3>
-        <CountUp
-          from={0}
-          to={totalScore}
-          separator=","
-          class="text-6xl font-black"
-          duration={0.5}
-        />
-      {:else}
-        <h3>Round {selectedRoundIndex + 1}</h3>
-        <h2 class="text-6xl text-center font-black">
-          {rounds[selectedRoundIndex].score === 5000
-            ? "5K"
-            : rounds[selectedRoundIndex].score}
-        </h2>
-      {/if}
-    </div>
+      <div class="h-24 flex flex-col place-content-center place-items-center">
+        {#if selectedRoundIndex === undefined}
+          <h3>Total Score</h3>
+          <CountUp
+            from={0}
+            to={totalScore}
+            separator=","
+            class="text-6xl font-black"
+            duration={0.5}
+          />
+        {:else}
+          <h3>Round {selectedRoundIndex + 1}</h3>
+          <h2 class="text-6xl text-center font-black">
+            {rounds[selectedRoundIndex].score === 5000
+              ? "5K"
+              : rounds[selectedRoundIndex].score}
+          </h2>
+        {/if}
+      </div>
 
-    <table class="table bg-base-200 rounded-box shadow-md overflow-hidden">
-      <thead>
-        <tr>
-          <th>Round</th>
-          <th>Distance</th>
-          <th>Score</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each rounds as round, i}
-          <tr
-            class="list-row hover:cursor-pointer hover:bg-base-300 {selectedRoundIndex ===
-              i && 'bg-base-300'} {round.score === 5000 &&
-              'text-yellow-500 font-bold'}"
-            onclick={() => focusGuess(i)}
-          >
-            <th>{i + 1}</th>
-            <td>{formatDist(round.dist)}</td>
-            <td>{round.score}</td>
+      <table class="table bg-base-200 rounded-box shadow-md overflow-hidden">
+        <thead>
+          <tr>
+            <th>Round</th>
+            <th>Distance</th>
+            <th>Score</th>
           </tr>
-        {/each}
-      </tbody>
+        </thead>
+        <tbody>
+          {#each rounds as round, i}
+            <tr
+              class="list-row hover:cursor-pointer hover:bg-base-300 {selectedRoundIndex ===
+                i && 'bg-base-300'} {round.score === 5000 &&
+                'text-yellow-500 font-bold'}"
+              onclick={() => focusGuess(i)}
+            >
+              <th>{i + 1}</th>
+              <td>{formatDist(round.dist)}</td>
+              <td>{round.score}</td>
+            </tr>
+          {/each}
+        </tbody>
 
-      <!-- <tfoot> -->
-      <!--   <tr -->
-      <!--     class={selectedRoundIndex !== undefined ? "hover:cursor-pointer" : ""} -->
-      <!--     onclick={() => focusGuess(undefined)} -->
-      <!--   > -->
-      <!--     <th>Total</th> -->
-      <!--     <td></td> -->
-      <!--     <td class="font-black">{totalScore}</td> -->
-      <!--   </tr> -->
-      <!-- </tfoot> -->
-    </table>
+        <!-- <tfoot> -->
+        <!--   <tr -->
+        <!--     class={selectedRoundIndex !== undefined ? "hover:cursor-pointer" : ""} -->
+        <!--     onclick={() => focusGuess(undefined)} -->
+        <!--   > -->
+        <!--     <th>Total</th> -->
+        <!--     <td></td> -->
+        <!--     <td class="font-black">{totalScore}</td> -->
+        <!--   </tr> -->
+        <!-- </tfoot> -->
+      </table>
 
-    <div class="flex place-content-between mt-4">
-      <a href="/" class="btn btn-primary">
-        <House />
-        <span>Home</span>
-      </a>
+      <div class="flex place-content-between mt-4">
+        <a href="/" class="btn btn-primary">
+          <House />
+          <span>Home</span>
+        </a>
 
-      <a href="/play" class="btn btn-success">
-        <RotateCcw />
-        <span>Run it back</span>
-      </a>
+        <a href="/play" class="btn btn-success">
+          <RotateCcw />
+          <span>Run it back</span>
+        </a>
+      </div>
     </div>
   </div>
 </div>

@@ -22,7 +22,7 @@
   });
 </script>
 
-<div class="w-full flex-1">
+<div class="w-full flex-1 px-4">
   {#if loading}
     <div class="w-full h-full flex place-content-center place-items-center">
       <span class="loading loading-spinner loading-md"></span>
