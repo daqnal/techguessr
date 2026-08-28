@@ -1,7 +1,14 @@
 <script lang="ts">
   import { toast } from "$lib/components/toast/toast.svelte";
   import { supabase } from "$lib/supabaseClient";
-  import { Lock, ChevronRight, ScrollText, X, MapPinned } from "@lucide/svelte";
+  import {
+    Lock,
+    ChevronRight,
+    ScrollText,
+    X,
+    MapPinned,
+    Map,
+  } from "@lucide/svelte";
   import { onMount, onDestroy, tick } from "svelte";
   import * as ml from "maplibre-gl";
   import "maplibre-gl/dist/maplibre-gl.css";
@@ -9,6 +16,7 @@
   import "./map.css";
   import calculateResults from "$lib/functions/calculateResults";
   import type { Photo, GameState } from "../../consts";
+  import { innerWidth } from "svelte/reactivity/window";
   import {
     IMAGE_COUNT,
     MAP_STYLE_URL,
@@ -36,6 +44,7 @@
   let imageLoading: boolean = $state(true);
   let lockedIn: boolean = $state(false);
   let showModal: boolean = $state(false);
+  let showMobileMap: boolean = $state(false);
   let photos: Photo[] = $state([]);
   let currentPhotoIndex: number = $state(0);
 
@@ -47,6 +56,12 @@
   let dragging = $state(false);
   let last = { x: 0, y: 0 };
   let frame: HTMLDivElement | undefined = $state();
+  const activePointers = new globalThis.Map<number, { x: number; y: number }>();
+  let pinchStartDistance = 0;
+  let pinchStartScale = 1;
+  let pinchStartCenter = { x: 0, y: 0 };
+  let pinchStartX = 0;
+  let pinchStartY = 0;
 
   let mapGuessContainer: HTMLDivElement;
   let mapScoreContainer: HTMLDivElement;
@@ -67,8 +82,6 @@
       photo_count: IMAGE_COUNT,
       exclude_user_id: user?.id ?? null,
     });
-
-    console.log(data);
 
     if (error) {
       toast(error.message, "error");
@@ -105,6 +118,9 @@
     guess = new ml.LngLat(0, 0);
     showModal = false;
     lockedIn = false;
+    scale = 1;
+    x = 0;
+    y = 0;
 
     await tick();
 
@@ -141,21 +157,79 @@
   }
 
   function onPointerDown(e: PointerEvent) {
-    if (scale <= 1) return;
-    dragging = true;
-    last = { x: e.clientX, y: e.clientY };
+    activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+
+    if (activePointers.size === 2 && frame) {
+      const [first, second] = [...activePointers.values()];
+      pinchStartDistance = Math.hypot(
+        second.x - first.x,
+        second.y - first.y,
+      );
+      pinchStartScale = scale;
+      const rect = frame.getBoundingClientRect();
+      pinchStartCenter = {
+        x: (first.x + second.x) / 2 - rect.left,
+        y: (first.y + second.y) / 2 - rect.top,
+      };
+      pinchStartX = x;
+      pinchStartY = y;
+      dragging = false;
+    } else if (activePointers.size === 1 && scale > 1) {
+      dragging = true;
+      last = { x: e.clientX, y: e.clientY };
+    }
   }
 
   function onPointerMove(e: PointerEvent) {
+    if (!activePointers.has(e.pointerId)) return;
+    activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (activePointers.size >= 2 && frame) {
+      const [first, second] = [...activePointers.values()];
+      const distance = Math.hypot(
+        second.x - first.x,
+        second.y - first.y,
+      );
+      const ratio = distance / pinchStartDistance;
+      const nextScale = Math.min(4, Math.max(1, pinchStartScale * ratio));
+      const rect = frame.getBoundingClientRect();
+      const center = {
+        x: (first.x + second.x) / 2 - rect.left,
+        y: (first.y + second.y) / 2 - rect.top,
+      };
+
+      x = center.x - (pinchStartCenter.x - pinchStartX) *
+        (nextScale / pinchStartScale);
+      y = center.y - (pinchStartCenter.y - pinchStartY) *
+        (nextScale / pinchStartScale);
+      scale = nextScale;
+      if (scale === 1) {
+        x = 0;
+        y = 0;
+      }
+      return;
+    }
+
     if (!dragging) return;
     x += e.clientX - last.x;
     y += e.clientY - last.y;
     last = { x: e.clientX, y: e.clientY };
   }
 
-  function onPointerUp() {
-    dragging = false;
+  function onPointerUp(e: PointerEvent) {
+    activePointers.delete(e.pointerId);
+    if (activePointers.size === 1) {
+      const remaining = [...activePointers.values()][0];
+      last = { x: remaining.x, y: remaining.y };
+      dragging = scale > 1;
+    } else {
+      dragging = false;
+    }
+  }
+
+  function onPointerCancel(e: PointerEvent) {
+    onPointerUp(e);
   }
 
   const handleLockIn = async () => {
@@ -249,8 +323,6 @@
       }),
     );
 
-    console.log(avatarUrl);
-
     map?.on("click", (e) => {
       guess = e.lngLat;
       guessMarker = setGuessMarker(guess, map, avatarUrl, guessMarker, true);
@@ -313,7 +385,7 @@
       onpointerdown={onPointerDown}
       onpointermove={onPointerMove}
       onpointerup={onPointerUp}
-      onpointercancel={onPointerUp}
+      onpointercancel={onPointerCancel}
       role="presentation"
       onwheel={onWheel}
     >
@@ -325,37 +397,61 @@
     </div>
   {/if}
 
-  <div
-    class="absolute w-full h-full flex flex-col gap-2 place-content-between pointer-events-none"
-  >
+  <div class="w-full h-full pointer-events-none">
     {#if !lockedIn || !showModal}
-      <div class="badge badge-lg badge-neutral m-2 font-bold">
+      <div
+        class="absolute top-2 left-2 badge badge-sm md:badge-md lg:badge-lg badge-neutral m-2 font-bold"
+      >
         Round {currentPhotoIndex + 1}/5
       </div>
     {/if}
 
     {#if !lockedIn}
-      <div class="w-full flex place-content-between place-items-end p-2">
-        <div></div>
+      {#if innerWidth.current === undefined}
+        <div>Error</div>
+      {:else if innerWidth.current >= 768}
         <div
-          class="flex flex-col gap-2 w-[25vw] min-w-75 h-[35vh] min-h-75 pointer-events-auto"
+          class="w-full h-full flex place-content-between place-items-end p-2"
         >
+          <div></div>
           <div
-            id="map-guess-container"
-            bind:this={mapGuessContainer}
-            class="bottom-0 right-0 w-full flex-1 rounded-box flex"
-          ></div>
-          <button
-            type="button"
-            class="btn btn-success w-full z-20 shadow-lg {guess.lng === 0 &&
-              'btn-disabled bg-success/50'}"
-            onclick={() => handleLockIn()}
+            class="flex flex-col gap-2 w-[25vw] min-w-75 h-[35vh] min-h-75 pointer-events-auto"
           >
-            <Lock size={16} />
-            <span class="font-black">LOCK IT IN</span>
-          </button>
+            <div
+              id="map-guess-container"
+              bind:this={mapGuessContainer}
+              class="bottom-0 right-0 w-full flex-1 rounded-box flex"
+            ></div>
+            <button
+              type="button"
+              class="btn btn-success w-full z-20 shadow-lg {guess.lng === 0 &&
+                'btn-disabled bg-success/50'}"
+              onclick={() => handleLockIn()}
+            >
+              <Lock size={16} />
+              <span class="font-black">LOCK IT IN</span>
+            </button>
+          </div>
         </div>
-      </div>
+      {:else}
+        <div class="w-full h-full pointer-events-auto">
+          <div
+            class="{!showMobileMap &&
+              'hidden'} absolute top-1/2 left-1/2 -translate-1/2 w-[90vw] h-[75vh] rounded-box"
+          >
+            <div
+              id="map-guess-container"
+              bind:this={mapGuessContainer}
+              class=" w-full h-full rounded-box"
+            ></div>
+          </div>
+          <button
+            class="absolute bottom-2 right-2 btn btn-circle btn-success tooltip tooltip-left tooltip-success"
+            data-tip="Show Map"
+            onclick={() => (showMobileMap = !showMobileMap)}><Map /></button
+          >
+        </div>
+      {/if}
     {/if}
 
     {#if lockedIn && !showModal}

@@ -474,6 +474,7 @@
           Confirm that the coordinates are exactly correct (many times the GPS
           data is inaccurate)
         </li>
+        <li>Upload both indoor and outdoor photos</li>
       </ul>
 
       <hr style="margin: 12px 0px;" />
