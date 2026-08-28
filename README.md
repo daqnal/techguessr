@@ -32,4 +32,4 @@ bun install
 
 ## AI Disclosure
 
-LLM's were used for writing and debugging code in the development process. Every line of code has been read and understood by a human.
+LLM's were used for writing and debugging code in the development process. AI is never permitted to one-shot code for production without human review, nor is it encouraged to generate large chunks of code (more than a few functions).
