@@ -1,12 +1,55 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import "./layout.css";
   import Navbar from "$lib/components/Navbar.svelte";
   import ToastHost from "$lib/components/toast/ToastHost.svelte";
   import { SvelteTheme } from "svelte-themes";
   import ShapeGrid from "$lib/components/sveltebits/ShapeGrid.svelte";
-  import { userState } from "./state.svelte";
+  import { userState } from "$lib/state.svelte";
 
   let { children } = $props();
+  let stateHydrated = $state(false);
+
+  onMount(() => {
+    const storedState = localStorage.getItem("techguessr.user-state");
+
+    if (storedState) {
+      try {
+        const parsedState = JSON.parse(storedState);
+
+        if (parsedState && typeof parsedState === "object") {
+          if (typeof parsedState.loggedIn === "boolean") {
+            userState.loggedIn = parsedState.loggedIn;
+          }
+          if (
+            parsedState.unitSystem === "metric" ||
+            parsedState.unitSystem === "imperial"
+          ) {
+            userState.unitSystem = parsedState.unitSystem;
+          }
+          if (typeof parsedState.gridEnabled === "boolean") {
+            userState.gridEnabled = parsedState.gridEnabled;
+          }
+          if (
+            typeof parsedState.gridSpeed === "number" &&
+            Number.isFinite(parsedState.gridSpeed)
+          ) {
+            userState.gridSpeed = parsedState.gridSpeed;
+          }
+        }
+      } catch {
+        localStorage.removeItem("techguessr.user-state");
+      }
+    }
+
+    stateHydrated = true;
+  });
+
+  $effect(() => {
+    if (stateHydrated) {
+      localStorage.setItem("techguessr.user-state", JSON.stringify(userState));
+    }
+  });
 </script>
 
 <svelte:head

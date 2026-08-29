@@ -4,7 +4,7 @@
   import { supabase } from "../../supabaseClient";
   import Avatar from "./Avatar.svelte";
   import { toast } from "../toast/toast.svelte";
-  import { userState } from "../../../routes/state.svelte";
+  import { userState } from "$lib/state.svelte";
 
   interface Props {
     session: AuthSession;

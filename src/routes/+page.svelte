@@ -3,7 +3,6 @@
   import SplitText from "$lib/components/sveltebits/SplitText.svelte";
   import { supabase } from "$lib/supabaseClient";
   import { onMount } from "svelte";
-  import { innerHeight, innerWidth } from "svelte/reactivity/window";
 
   const filenames = [
     "parking_deck.webp",

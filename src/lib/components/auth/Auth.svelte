@@ -2,7 +2,7 @@
   import { useTheme } from "svelte-themes";
   import { supabase } from "../../supabaseClient";
   import { toast } from "../toast/toast.svelte";
-  import { userState } from "../../../routes/state.svelte";
+  import { userState } from "$lib/state.svelte";
 
   const theme = useTheme();
 
@@ -60,10 +60,12 @@
     if (error) {
       toast(error.message, "error");
       signupLoading = false;
+      userState.loggedIn = false;
       return;
     } else if (!data.user?.id) {
       toast("Failed to retrieve id of new user", "error");
       signupLoading = false;
+      userState.loggedIn = false;
       return;
     }
 
@@ -79,6 +81,7 @@
 
     if (profileError) {
       toast(profileError.message, "error");
+      userState.loggedIn = false;
       signupLoading = false;
       return;
     }
@@ -100,6 +103,7 @@
     }
 
     toast("Account created successfully", "success");
+    userState.loggedIn = true;
     signupLoading = false;
   };
 </script>
