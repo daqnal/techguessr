@@ -1,7 +1,10 @@
 <script lang="ts">
+  import { useTheme } from "svelte-themes";
   import { supabase } from "../../supabaseClient";
   import { toast } from "../toast/toast.svelte";
-  import { Theme } from "svelte-themes";
+  import { userState } from "../../../routes/state.svelte";
+
+  const theme = useTheme();
 
   let authType: string = $state("login");
   let loginLoading = $state(false);
@@ -13,16 +16,38 @@
   const handleLogin = async () => {
     loginLoading = true;
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
       toast(error.message, "error");
-    } else {
-      localStorage.setItem("loggedIn", "true");
+      loginLoading = false;
+      userState.loggedIn = false;
+      return;
     }
+    userState.loggedIn = true;
+
+    const { error: settingsError, data: settingsData } = await supabase
+      .from("settings")
+      .select("theme, unit_system, grid_enabled, grid_speed")
+      .eq("user_id", data.user.id)
+      .single();
+
+    if (settingsError) {
+      toast(settingsError.message, "error");
+      loginLoading = false;
+      return;
+    }
+
+    // Apply settings
+    userState.unitSystem = settingsData.unit_system;
+    userState.gridEnabled = settingsData.grid_enabled;
+    userState.gridSpeed = settingsData.grid_speed;
+    theme.theme = settingsData.theme;
+
+    toast("Logged in successfully", "success");
     loginLoading = false;
   };
 
@@ -61,8 +86,10 @@
     // Create default settings row
     const { error: settingsError } = await supabase.from("settings").upsert({
       user_id: data.user.id,
-      theme: "system",
-      unit_system: localStorage.getItem("unitSystem") ?? "metric",
+      theme: theme.theme,
+      unit_system: userState.unitSystem,
+      grid_enabled: userState.gridEnabled,
+      grid_speed: userState.gridSpeed,
       updated_at: new Date().toISOString(),
     });
 
@@ -83,7 +110,7 @@
 
 <div class="w-full h-full flex place-content-center place-items-center">
   <div
-    class="card w-full max-w-84 bg-base-200 shadow-2xl flex flex-col gap-4 p-4"
+    class="card w-full max-w-84 bg-base-200 border-2 border-primary/50 shadow-2xl flex flex-col gap-4 p-4"
     aria-live="polite"
   >
     <h1 class="text-xl text-center">Login or Signup</h1>

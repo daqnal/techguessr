@@ -2,18 +2,10 @@
   import { toast } from "$lib/components/toast/toast.svelte";
   import { supabase } from "$lib/supabaseClient";
   import SettingsOption from "./SettingsOption.svelte";
-  import { onMount } from "svelte";
   import { useTheme } from "svelte-themes";
+  import { userState } from "../state.svelte";
 
   const theme = useTheme();
-  let loggedIn = $state(false);
-
-  let currUnitSystem: string = $state("metric");
-
-  const handleUnitSystemChange = (newUnitSystem: string) => {
-    localStorage.setItem("unitSystem", newUnitSystem);
-    currUnitSystem = newUnitSystem;
-  };
 
   const handleSaveSettings = async () => {
     const {
@@ -27,7 +19,9 @@
     const { error } = await supabase.from("settings").upsert({
       user_id: user.id,
       theme: theme.theme,
-      unit_system: currUnitSystem,
+      unit_system: userState.unitSystem,
+      grid_enabled: userState.gridEnabled,
+      grid_speed: userState.gridSpeed,
       updated_at: new Date().toISOString(),
     });
 
@@ -38,47 +32,6 @@
       toast("Settings saved successfully", "success");
     }
   };
-
-  onMount(async () => {
-    // Check if logged in
-    const localStorageLoggedIn = localStorage.getItem("loggedIn");
-    loggedIn = localStorageLoggedIn === "true";
-
-    // Only load from backend if logged in, else load from localStorage
-    if (loggedIn) {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        toast("User is not logged in", "error");
-        return;
-      }
-
-      const { error, data } = await supabase
-        .from("settings")
-        .select("theme, unit_system")
-        .eq("user_id", user.id)
-        .single();
-
-      if (error) {
-        toast(error.message, "error");
-        return;
-      }
-
-      // Set unit system
-      currUnitSystem = data.unit_system;
-      localStorage.setItem("unitSystem", currUnitSystem);
-    } else {
-      // Load unit system
-      const unitSystem = localStorage.getItem("unitSystem");
-      if (unitSystem) {
-        currUnitSystem = unitSystem;
-      } else {
-        currUnitSystem = "metric";
-        localStorage.setItem("unitSystem", "metric");
-      }
-    }
-  });
 </script>
 
 <div class="flex-1 flex place-content-center place-items-center p-2">
@@ -90,7 +43,7 @@
     </h1>
 
     <div
-      class="flex max-h-4/5 flex-col gap-4 bg-base-200 rounded-box overflow-y-auto p-4 shadow-2xl"
+      class="flex max-h-4/5 flex-col gap-4 bg-base-200 border-2 border-primary/50 rounded-box overflow-y-auto p-4 shadow-2xl"
     >
       <SettingsOption name="Theme">
         <div
@@ -109,6 +62,8 @@
         </div>
       </SettingsOption>
 
+      <hr class="text-primary-content/20" />
+
       <SettingsOption name="Unit System">
         <div class="w-full join">
           <input
@@ -116,21 +71,60 @@
             name="unit-join"
             class="w-1/2 join-item btn btn-soft"
             aria-label="Metric"
-            checked={currUnitSystem === "metric"}
-            onclick={() => handleUnitSystemChange("metric")}
+            checked={userState.unitSystem === "metric"}
+            onclick={() => (userState.unitSystem = "metric")}
           />
           <input
             type="radio"
             name="unit-join"
             class="w-1/2 join-item btn btn-soft"
             aria-label="Imperial"
-            checked={currUnitSystem === "imperial"}
-            onclick={() => handleUnitSystemChange("imperial")}
+            checked={userState.unitSystem === "imperial"}
+            onclick={() => (userState.unitSystem = "imperial")}
           />
         </div>
       </SettingsOption>
 
-      {#if loggedIn}
+      <hr class="text-primary-content/20" />
+
+      <SettingsOption name="Grid Background">
+        <label class="label">
+          <span>{userState.gridEnabled ? "Enabled" : "Disabled"}</span>
+          <input
+            type="checkbox"
+            class="toggle toggle-primary"
+            bind:checked={userState.gridEnabled}
+          />
+        </label>
+      </SettingsOption>
+
+      <SettingsOption name="Grid Speed">
+        <div class="w-full">
+          <input
+            type="range"
+            min={0}
+            max={0.5}
+            step={0.05}
+            class="range range-primary"
+            disabled={!userState.gridEnabled}
+            bind:value={userState.gridSpeed}
+          />
+          <div class="flex justify-between mt-2 text-xs">
+            <span>None</span>
+            <span></span>
+            <span></span>
+            <span>Slow</span>
+            <span></span>
+            <span></span>
+            <span>Medium</span>
+            <span></span>
+            <span></span>
+            <span>Fast</span>
+          </div>
+        </div>
+      </SettingsOption>
+
+      {#if userState.loggedIn}
         <div class="flex place-content-end mt-4">
           <button class="btn btn-success" onclick={handleSaveSettings}
             >Save settings</button

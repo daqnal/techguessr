@@ -4,6 +4,7 @@
   import ToastHost from "$lib/components/toast/ToastHost.svelte";
   import { SvelteTheme } from "svelte-themes";
   import ShapeGrid from "$lib/components/sveltebits/ShapeGrid.svelte";
+  import { userState } from "./state.svelte";
 
   let { children } = $props();
 </script>
@@ -50,12 +51,14 @@
     <div
       class="w-full h-full absolute top-0 left-0 pointer-events-auto z-[-10]"
     >
-      <ShapeGrid
-        direction="diagonal"
-        speed={0.05}
-        squareSize={30}
-        hoverTrailAmount={4}
-      />
+      {#if userState.gridEnabled}
+        <ShapeGrid
+          direction="diagonal"
+          speed={userState.gridSpeed}
+          squareSize={30}
+          hoverTrailAmount={4}
+        />
+      {/if}
     </div>
   </div>
 </SvelteTheme>
