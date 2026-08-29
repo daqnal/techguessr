@@ -1,6 +1,6 @@
 # TechGuessr
 
-![Screenshot of techguessr.com](tg_ss.png)
+![Screenshot of techguessr.com](ss.png)
 
 TechGuessr is a map game similar to GeoGuessr, but localized to the Georgia Tech campus in Atlanta.
 

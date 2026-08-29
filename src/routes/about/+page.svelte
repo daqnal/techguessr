@@ -24,8 +24,7 @@
       </p>
       <p>
         The closer you are, the more points you are awarded. A perfect round
-        gives you 5,000 points, so a perfect game is 25,000 points. Do you dare
-        to become the top campus knower?
+        gives you 5,000 points, so a perfect game is 25,000 points.
       </p>
 
       <h2>Can I submit photos to the game?</h2>
