@@ -4,6 +4,7 @@
   import { supabase } from "../../supabaseClient";
   import Avatar from "./Avatar.svelte";
   import { toast } from "../toast/toast.svelte";
+  import { userState } from "../../../routes/state.svelte";
 
   interface Props {
     session: AuthSession;
@@ -71,7 +72,7 @@
       toast("Error signing out", "error");
     } else {
       toast("Signed out successfully", "success");
-      localStorage.setItem("loggedIn", "false");
+      userState.loggedIn = false;
     }
   };
 </script>
@@ -82,7 +83,7 @@
 
 <div class="w-full h-full flex place-content-center place-items-center">
   <div
-    class="card w-full max-w-84 bg-base-200 shadow-2xl flex flex-col gap-4 p-4"
+    class="card w-full max-w-84 bg-base-200 shadow-2xl flex flex-col gap-4 p-4 border-2 border-primary/50"
     aria-live="polite"
   >
     <h1 class="text-2xl font-bold text-center">Account</h1>

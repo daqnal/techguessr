@@ -4,16 +4,14 @@
   import Avatar from "./auth/Avatar.svelte";
   import { onMount } from "svelte";
   import { page } from "$app/state";
+  import { userState } from "../../routes/state.svelte";
 
-  let loggedIn: boolean = $state(false);
   let avatarPath = $state<string | null>(null);
 
   async function loadProfile() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    loggedIn = !!user;
-    localStorage.setItem("loggedIn", loggedIn ? "true" : "false");
     if (!user) {
       avatarPath = null;
       return;
@@ -39,7 +37,9 @@
   });
 </script>
 
-<nav class="flex justify-between place-items-center p-2 bg-base-300 z-100">
+<nav
+  class="flex justify-between place-items-center p-2 bg-base-300 border-b-2 border-b-primary/50 z-100"
+>
   <div class="h-fit hidden sm:flex place-items-center gap-1">
     <a href="/" class="btn btn-ghost text-lg font-black">
       <span>TechGuessr</span>
@@ -56,7 +56,7 @@
       <li class={page.url.pathname === "/play" ? "menu-disabled" : ""}>
         <a href="/play" class="rounded-box">Play</a>
       </li>
-      {#if loggedIn}
+      {#if userState.loggedIn}
         <li class={page.url.pathname === "/upload" ? "menu-disabled" : ""}>
           <a href="/upload" class="rounded-box">Upload</a>
         </li>
@@ -80,7 +80,7 @@
       <Settings size={16} />
     </a>
 
-    {#if loggedIn}
+    {#if userState.loggedIn}
       <div class="tooltip tooltip-bottom font-bold" data-tip="Account">
         <Avatar {supabase} upload={false} url={avatarPath ?? undefined} />
       </div>
