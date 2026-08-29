@@ -82,7 +82,7 @@
 
 <div class="w-full h-full flex place-content-center place-items-center">
   <div
-    class="card w-full max-w-84 bg-base-200 shadow-lg flex flex-col gap-4 p-4"
+    class="card w-full max-w-84 bg-base-200 shadow-2xl flex flex-col gap-4 p-4"
     aria-live="polite"
   >
     <h1 class="text-2xl font-bold text-center">Account</h1>

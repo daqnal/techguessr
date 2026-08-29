@@ -463,13 +463,23 @@
         <div class="w-full h-full pointer-events-auto">
           <div
             class="{!showMobileMap &&
-              'hidden'} absolute top-1/2 left-1/2 -translate-1/2 w-[90vw] h-[75vh] rounded-box"
+              'hidden'} fixed w-screen h-screen backdrop-blur-2xl z-10"
           >
             <div
-              id="mobile-map-guess-container"
-              bind:this={mapGuessContainer}
-              class="w-full h-full rounded-box"
-            ></div>
+              class="absolute top-1/2 left-1/2 -translate-1/2 w-[90vw] h-[80vh] rounded-box"
+            >
+              <div
+                id="mobile-map-guess-container"
+                bind:this={mapGuessContainer}
+                class="w-full h-full rounded-box"
+              >
+                <button
+                  class="absolute top-2 right-2 btn btn-circle btn-sm z-10"
+                  onclick={() => (showMobileMap = false)}
+                  ><X size={16} /></button
+                >
+              </div>
+            </div>
           </div>
           <div class="absolute bottom-2 right-0 w-full flex gap-2 px-2">
             <button

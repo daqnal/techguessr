@@ -83,10 +83,14 @@
 
 <div class="flex-1 flex place-content-center place-items-center p-2">
   <div class="w-full max-w-xl flex flex-col gap-4">
-    <h1 class="tracking-wider text-4xl font-bold text-center mt-4">Settings</h1>
+    <h1
+      class="tracking-wider text-4xl font-bold text-center mt-4 text-shadow-lg"
+    >
+      Settings
+    </h1>
 
     <div
-      class="flex max-h-4/5 flex-col gap-4 bg-base-200 rounded-box overflow-y-auto p-4"
+      class="flex max-h-4/5 flex-col gap-4 bg-base-200 rounded-box overflow-y-auto p-4 shadow-2xl"
     >
       <SettingsOption name="Theme">
         <div

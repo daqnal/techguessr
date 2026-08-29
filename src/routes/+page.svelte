@@ -3,6 +3,7 @@
   import SplitText from "$lib/components/sveltebits/SplitText.svelte";
   import { supabase } from "$lib/supabaseClient";
   import { onMount } from "svelte";
+  import { innerHeight, innerWidth } from "svelte/reactivity/window";
 
   const filenames = [
     "parking_deck.webp",
@@ -27,7 +28,7 @@
 
 <div class="w-full h-full relative">
   <div
-    class="w-fit absolute top-1/2 left-1/2 -translate-1/2 pt-12 pointer-events-auto"
+    class="w-fit absolute top-1/2 left-1/2 -translate-1/2 pt-12 pointer-events-auto z-10"
   >
     <BounceCards
       images={pubUrls}
@@ -42,18 +43,16 @@
     class="w-full max-w-132 h-full absolute left-1/2 -translate-x-1/2 flex flex-col place-content-between text-center gap-4 px-2 py-8 pointer-events-none"
   >
     <div
-      class="text-5xl md:text-6xl lg:text-7xl bg-base-100/90 p-3 rounded-box"
+      class="text-5xl sm:text-6xl lg:text-7xl p-3 rounded-box text-shadow-lg flex flex-col place-content-center place-items-center gap-2"
     >
-      <span class="font-medium -mr-2">
-        <SplitText text="Tech" class="overflow-x-visible" delay={50} />
-      </span>
-      <span class="font-black">
-        <SplitText text="Guessr" delay={100} />
-      </span>
-
-      <p class="mt-2 text-sm sm:text-base md:text-lg">
-        Locate photos across Georgia Tech's campus 🧭
-      </p>
+      <div class="w-fit px-4 py-2 rounded-box">
+        <span class="font-medium -mr-2">
+          <SplitText text="Tech" class="overflow-x-visible" delay={50} />
+        </span>
+        <span class="font-black">
+          <SplitText text="Guessr" delay={100} />
+        </span>
+      </div>
     </div>
 
     <div class="hover:scale-[1.1] duration-200">
