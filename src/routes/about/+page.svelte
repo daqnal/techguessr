@@ -10,8 +10,7 @@
   <div class="max-w-200 h-full">
     <article class="prose mt-8 lg:mt-16 p-4 rounded-box bg-base-300">
       <h1 class="text-5xl text-center -mb-12">
-        <SplitText text="About" delay={100} />
-        <SplitText text="TechGuessr 🗺️" delay={100} />
+        <SplitText text="About TechGuessr 🗺️" delay={100} />
       </h1>
 
       <h2>What is TechGuessr?</h2>

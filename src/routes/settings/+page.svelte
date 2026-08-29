@@ -97,7 +97,7 @@
               type="radio"
               name="theme-controller"
               class="btn btn-soft join-item"
-              aria-label={name}
+              aria-label={name.charAt(0).toUpperCase() + name.substring(1)}
               checked={theme.theme === name}
               onclick={() => (theme.theme = name)}
             />
