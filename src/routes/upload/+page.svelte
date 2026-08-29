@@ -377,7 +377,7 @@
     <div class="flex-1 flex flex-col bg-base-200 rounded-box gap-4 min-h-0">
       <div class="flex-1 flex flex-col p-2 gap-4">
         {#if selected}
-          <div class="flex-1 flex w-full place-items-center min-h-0 gap-4">
+          <div class="flex-1 flex w-full place-items-center min-h-0 gap-2">
             <div
               class="{(innerWidth.current ?? 0) < 768 &&
                 'hidden'} flex-1 h-full rounded-box overflow-hidden"
@@ -551,7 +551,7 @@
 <!-- Rules modal -->
 <div
   class="w-screen h-screen fixed backdrop-blur-xl pointer-events-none {!showRulesModal &&
-    'hidden'}"
+    'hidden'} z-10 bottom-0 right-0"
 >
   <dialog class="modal {showRulesModal && 'modal-open'}">
     <div

@@ -3,6 +3,7 @@
   import Navbar from "$lib/components/Navbar.svelte";
   import ToastHost from "$lib/components/toast/ToastHost.svelte";
   import { SvelteTheme } from "svelte-themes";
+  import ShapeGrid from "$lib/components/sveltebits/ShapeGrid.svelte";
 
   let { children } = $props();
 </script>
@@ -45,6 +46,16 @@
     <Navbar />
     <div class="flex min-h-0 flex-1 flex-col overflow-hidden">
       {@render children()}
+    </div>
+    <div
+      class="w-full h-full absolute top-0 left-0 pointer-events-auto z-[-10]"
+    >
+      <ShapeGrid
+        direction="diagonal"
+        speed={0.05}
+        squareSize={30}
+        hoverTrailAmount={4}
+      />
     </div>
   </div>
 </SvelteTheme>
