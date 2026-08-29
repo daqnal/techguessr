@@ -216,17 +216,6 @@
             </tr>
           {/each}
         </tbody>
-
-        <!-- <tfoot> -->
-        <!--   <tr -->
-        <!--     class={selectedRoundIndex !== undefined ? "hover:cursor-pointer" : ""} -->
-        <!--     onclick={() => focusGuess(undefined)} -->
-        <!--   > -->
-        <!--     <th>Total</th> -->
-        <!--     <td></td> -->
-        <!--     <td class="font-black">{totalScore}</td> -->
-        <!--   </tr> -->
-        <!-- </tfoot> -->
       </table>
 
       <div class="flex place-content-between mt-4">

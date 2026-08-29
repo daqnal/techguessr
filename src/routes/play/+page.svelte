@@ -8,6 +8,8 @@
     X,
     MapPinned,
     Map,
+    ArrowUpLeft,
+    ArrowDownRight,
   } from "@lucide/svelte";
   import { onMount, onDestroy, tick } from "svelte";
   import * as ml from "maplibre-gl";
@@ -62,6 +64,8 @@
   let pinchStartCenter = { x: 0, y: 0 };
   let pinchStartX = 0;
   let pinchStartY = 0;
+  let mapWidth: number = $state(300);
+  let mapHeight: number = $state(300);
 
   let mapGuessContainer: HTMLDivElement;
   let mapScoreContainer: HTMLDivElement;
@@ -411,13 +415,39 @@
         >
           <div></div>
           <div
-            class="flex flex-col gap-2 w-[25vw] min-w-75 h-[35vh] min-h-75 pointer-events-auto"
+            class="flex flex-col gap-2 pointer-events-auto"
+            style="width: {mapWidth}px; height: {mapHeight}px;"
           >
             <div
-              id="map-guess-container"
+              id="desktop-map-guess-container"
               bind:this={mapGuessContainer}
-              class="bottom-0 right-0 w-full flex-1 rounded-box flex"
-            ></div>
+              class="bottom-0 right-0 w-full flex-1 rounded-box flex opacity-85 hover:opacity-100"
+            >
+              <div class="absolute top-0 left-0 flex flex-col gap-1 z-30 p-1">
+                <button
+                  class="btn btn-xs btn-circle"
+                  onclick={() => {
+                    if (mapWidth < 700) {
+                      mapWidth += 100;
+                      mapHeight += 100;
+                    }
+                  }}
+                >
+                  <ArrowUpLeft size={16} />
+                </button>
+                <button
+                  class="btn btn-xs btn-circle"
+                  onclick={() => {
+                    if (mapWidth > 200) {
+                      mapWidth -= 100;
+                      mapHeight -= 100;
+                    }
+                  }}
+                >
+                  <ArrowDownRight size={16} />
+                </button>
+              </div>
+            </div>
             <button
               type="button"
               class="btn btn-success w-full z-20 shadow-lg {guess.lng === 0 &&
@@ -436,9 +466,9 @@
               'hidden'} absolute top-1/2 left-1/2 -translate-1/2 w-[90vw] h-[75vh] rounded-box"
           >
             <div
-              id="map-guess-container"
+              id="mobile-map-guess-container"
               bind:this={mapGuessContainer}
-              class=" w-full h-full rounded-box"
+              class="w-full h-full rounded-box"
             ></div>
           </div>
           <div class="absolute bottom-2 right-0 w-full flex gap-2 px-2">
