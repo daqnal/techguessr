@@ -5,10 +5,10 @@ const config = {
   kit: {
     adapter: adapter(),
     csp: {
-      mode: 'auto',
+      mode: "auto",
       directives: {
-        "worker-src": ["'self'", "blob:"]
-      }
+        "worker-src": ["self", "blob:"],
+      },
     },
   },
 };
