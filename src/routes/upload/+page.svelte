@@ -1,9 +1,16 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
   import { supabase } from "$lib/supabaseClient";
   import { extractGps, uploadPhoto } from "$lib/functions/photoUpload";
   import { toast } from "$lib/components/toast/toast.svelte";
-  import { RotateCcw, Save, Scale, Trash } from "@lucide/svelte";
+  import {
+    RotateCcw,
+    Save,
+    Scale,
+    Trash,
+    Map as MapIcon,
+    X,
+  } from "@lucide/svelte";
   import {
     CAMPUS_BOUNDS,
     CAMPUS_CENTER,
@@ -15,6 +22,7 @@
   import "./map.css";
   import { setAnswerMarker, zoomToAllPoints } from "$lib/functions/mapUtils";
   import { destroyMap } from "$lib/functions/destroyMap";
+  import { innerWidth } from "svelte/reactivity/window";
 
   let center = new LngLat(CAMPUS_CENTER.lng, CAMPUS_CENTER.lat);
 
@@ -25,8 +33,10 @@
   let oldCoordinates = $state<LngLat | undefined>(undefined);
   let uploading = $state(false);
   let showRulesModal: boolean = $state(false);
+  let showMobileMap: boolean = $state(false);
 
-  let mapContainer: HTMLDivElement;
+  let desktopMapContainer: HTMLDivElement;
+  let mobileMapContainer: HTMLDivElement;
   let map: Map | undefined;
   let newMarker: Marker | undefined = $state();
   let oldMarker: Marker | undefined;
@@ -93,13 +103,29 @@
     oldCoordinates = undefined;
   }
 
-  async function submitUpload() {
+  const submitUpload = async () => {
     if (!pendingFile) return;
-    if (!selected || selected?.lat === 0 || selected?.lng === 0) {
+    if (
+      !selected ||
+      !selected.lat ||
+      !selected.lng ||
+      selected.lat === 0 ||
+      selected.lng === 0
+    ) {
       toast("Add coordinates to submit", "error");
       return;
     }
 
+    // Check if coordinates are in campus bounds
+    if (
+      selected.lng < CAMPUS_BOUNDS._sw.lng ||
+      selected.lng > CAMPUS_BOUNDS._ne.lng ||
+      selected.lat < CAMPUS_BOUNDS._sw.lat ||
+      selected.lat > CAMPUS_BOUNDS._ne.lat
+    ) {
+      toast("Coordinates out of bounds", "error");
+      return;
+    }
     uploading = true;
 
     try {
@@ -124,7 +150,7 @@
     } finally {
       uploading = false;
     }
-  }
+  };
 
   const updatePhoto = async () => {
     if (!selected) return;
@@ -137,6 +163,16 @@
       return;
     } else if (!selected.lng || isNaN(selected.lng)) {
       toast("Invalid longitude", "error");
+      return;
+    }
+    // Check if coordinates are in campus bounds
+    if (
+      selected.lng < CAMPUS_BOUNDS._sw.lng ||
+      selected.lng > CAMPUS_BOUNDS._ne.lng ||
+      selected.lat < CAMPUS_BOUNDS._sw.lat ||
+      selected.lat > CAMPUS_BOUNDS._ne.lat
+    ) {
+      toast("Coordinates out of bounds", "error");
       return;
     }
 
@@ -155,7 +191,7 @@
       toast("Photo updated successfully", "success");
       map?.remove();
       oldCoordinates = new LngLat(selected.lng ?? 0, selected.lat ?? 0);
-      createMap();
+      createMap(desktopMapContainer);
       await loadPhotos();
     }
   };
@@ -180,13 +216,16 @@
     }
   };
 
-  const createMap = () => {
+  const createMap = (mapContainer: HTMLDivElement) => {
+    const coords: LngLat = new LngLat(
+      selected?.lng ?? CAMPUS_CENTER.lng,
+      selected?.lat ?? CAMPUS_CENTER.lat,
+    );
+
     map = new Map({
       container: mapContainer,
       style: MAP_STYLE_URL,
-      center: selected
-        ? new LngLat(selected.lng ?? 0, selected.lat ?? 0)
-        : CAMPUS_CENTER,
+      center: coords,
       zoom: 15,
       minZoom: 12,
       maxZoom: 20,
@@ -209,19 +248,14 @@
         map,
         newMarker,
         true,
-        undefined,
+        "New",
         "text-error-content",
         "fill-error",
       );
     });
 
-    // If we opened the map editing an existing photo, remember its original
-    // coordinates so Reset can restore them.
-    if (selected && selected.id) {
+    if (selected) {
       oldCoordinates = new LngLat(selected.lng ?? 0, selected.lat ?? 0);
-    }
-
-    if (oldCoordinates) {
       oldMarker = setAnswerMarker(
         new LngLat(selected?.lng ?? 0, selected?.lat ?? 0),
         map,
@@ -231,10 +265,9 @@
         "text-slate-800",
         "fill-slate-600",
       );
-
       zoomToAllPoints(map, [oldCoordinates]);
     } else {
-      zoomToAllPoints(map, [center]);
+      zoomToAllPoints(map, [coords]);
     }
   };
 
@@ -255,12 +288,12 @@
   };
 
   $effect(() => {
-    const container = mapContainer;
+    const container = desktopMapContainer;
     const hasContent = !!selected;
 
     if (hasContent && container) {
       const id = requestAnimationFrame(() => {
-        createMap();
+        createMap(desktopMapContainer);
       });
       return () => {
         cancelAnimationFrame(id);
@@ -271,6 +304,20 @@
     destroyMap(map, newMarker);
   });
 
+  const toggleMobileMap = async () => {
+    if (showMobileMap) {
+      destroyMap(map, newMarker);
+      map = undefined;
+      showMobileMap = false;
+      return;
+    }
+
+    showMobileMap = true;
+    await tick();
+    createMap(mobileMapContainer);
+    map?.resize();
+  };
+
   onMount(async () => {
     await loadPhotos();
   });
@@ -280,16 +327,17 @@
   <title>TechGuessr - Submit Photos</title>
 </svelte:head>
 
-<div class="flex flex-1 gap-4 p-2 overflow-hidden">
+<div class="flex flex-1 flex-col sm:flex-row gap-2 p-2 overflow-hidden">
   <div class="flex-1 bg-base-200 rounded-box overflow-hidden flex flex-col">
-    <h2 class="text-xl text-center font-bold my-4">Submitted Photos</h2>
+    <h2 class="text-xl text-center font-bold my-2 sm:my-4">Submitted Photos</h2>
     <div
       class="p-2 flex-1 flex flex-wrap place-content-evenly gap-4 overflow-y-auto"
     >
       {#each photos as photo}
         <button
           type="button"
-          class="btn w-56 h-56 flex flex-col {selected?.id === photo.id
+          class="btn w-32 h-32 md:w-56 md:h-56 flex flex-col {selected?.id ===
+          photo.id
             ? 'btn-disabled'
             : ''}"
           onclick={() => {
@@ -302,13 +350,13 @@
           <img
             src={photo.publicUrl}
             alt={photo.publicUrl}
-            class="max-h-42 max-w-42 object-contain rounded-box {selected?.id ===
+            class="max-h-26 md:max-h-42 max-w-26 md:max-w-42 object-contain rounded-box {selected?.id ===
             photo.id
               ? 'opacity-50'
               : 'opacity-100'}"
           />
           <span
-            class="badge badge-sm {selected?.id === photo.id
+            class="badge badge-xs md:badge-sm {selected?.id === photo.id
               ? 'opacity-50'
               : 'opacity-100'}"
             >{photo.status.charAt(0).toUpperCase() +
@@ -330,11 +378,14 @@
       <div class="flex-1 flex flex-col p-2 gap-4">
         {#if selected}
           <div class="flex-1 flex w-full place-items-center min-h-0 gap-4">
-            <div class="flex-1 h-full">
+            <div
+              class="{(innerWidth.current ?? 0) < 768 &&
+                'hidden'} flex-1 h-full rounded-box overflow-hidden"
+            >
               <div
-                id="map-container"
-                class="w-full h-full rounded-box"
-                bind:this={mapContainer}
+                id="desktop-map-container"
+                class="w-full h-full rounded-box overflow-hidden"
+                bind:this={desktopMapContainer}
               >
                 {#if newMarker}
                   <button
@@ -358,6 +409,46 @@
                   alt="Preview"
                   class="w-fit max-w-full h-fit max-h-full object-contain rounded-box"
                 />
+                <button
+                  class="absolute md:hidden bottom-1 right-1 btn btn-circle btn-soft btn-success"
+                  onclick={toggleMobileMap}
+                >
+                  <MapIcon />
+                </button>
+                {#if showMobileMap}
+                  <div
+                    class="fixed w-screen h-screen bottom-0 left-0 backdrop-blur-xl z-70"
+                  >
+                    <div
+                      class="fixed w-7/8 h-5/6 top-1/2 left-1/2 -translate-1/2 z-80 flex flex-col gap-6"
+                    >
+                      <h1 class="text-3xl font-bold text-center">
+                        Select location
+                      </h1>
+                      <div
+                        id="mobile-map-container"
+                        class="w-full h-full rounded-box overflow-hidden z-15"
+                        bind:this={mobileMapContainer}
+                      >
+                        <button
+                          class="absolute top-1 right-1 btn btn-circle btn-soft z-20 shadow-2xl"
+                          onclick={toggleMobileMap}
+                        >
+                          <X />
+                        </button>
+                        {#if newMarker}
+                          <button
+                            class="btn btn-error btn-soft btn-sm absolute bottom-1 right-1 z-20 shadow-2xl"
+                            onclick={resetCoordinates}
+                          >
+                            <RotateCcw size={16} />
+                            <span>Reset</span>
+                          </button>
+                        {/if}
+                      </div>
+                    </div>
+                  </div>
+                {/if}
               </div>
             </div>
           </div>
@@ -431,12 +522,12 @@
           <input
             type="file"
             accept="image/*"
-            class="file-input file-input-bordered flex-1"
+            class="file-input file-input-sm sm:file-input-md file-input-bordered flex-1"
             onchange={onFile}
           />
 
           <button
-            class="btn btn-primary"
+            class="btn btn-primary btn-sm sm:btn-md"
             type="button"
             disabled={!pendingFile || uploading}
             onclick={submitUpload}
@@ -445,7 +536,7 @@
           </button>
 
           <button
-            class="btn btn-circle btn-info tooltip tooltip-left"
+            class="btn btn-circle btn-info btn-sm sm:btn-md tooltip tooltip-left"
             data-tip="Submission Rules"
             onclick={() => (showRulesModal = true)}
           >
@@ -458,61 +549,72 @@
 </div>
 
 <!-- Rules modal -->
-<dialog class="modal {showRulesModal && 'modal-open'}">
-  <div class="modal-box flex flex-col gap-4 max-h-[80vh]">
-    <article class="prose overflow-y-auto">
-      <h1 class="text-center">Submission Rules</h1>
-      <h2>Do:</h2>
-      <ul class="list-(--check)">
-        <li>Make sure that the photo was taken on campus</li>
-        <li>Include some recognizable feature</li>
-        <li>
-          Set the coordinates to <b>where the photographer was standing</b>, not
-          where the focus of the photo is
-        </li>
-        <li>
-          Confirm that the coordinates are exactly correct (many times the GPS
-          data is inaccurate)
-        </li>
-        <li>Upload both indoor and outdoor photos</li>
-      </ul>
+<div
+  class="w-screen h-screen fixed backdrop-blur-xl pointer-events-none {!showRulesModal &&
+    'hidden'}"
+>
+  <dialog class="modal {showRulesModal && 'modal-open'}">
+    <div
+      class="fixed top-1/2 left-1/2 -translate-1/2 modal-box flex flex-col rounded-box gap-4 p-4 sm:p-4 max-h-[80vh] pointer-events-auto"
+    >
+      <article class="prose prose-sm sm:prose-base overflow-y-auto pt-4 pr-2">
+        <h1 class="text-center">Submission Rules</h1>
+        <h2>Do:</h2>
+        <ul class="list-(--check)">
+          <li>Make sure that the photo was taken on campus</li>
+          <li>Include some recognizable feature</li>
+          <li>
+            Set the coordinates to <b>where the photographer was standing</b>,
+            not where the focus of the photo is
+          </li>
+          <li>
+            Confirm that the coordinates are exactly correct (many times the GPS
+            data is inaccurate)
+          </li>
+          <li>Upload both indoor and outdoor photos</li>
+        </ul>
 
-      <hr style="margin: 12px 0px;" />
+        <hr style="margin: 12px 0px;" />
 
-      <h2>Don't:</h2>
-      <ul class="list-(--x)">
-        <li>Edit your photo to obscure the location</li>
-        <li>Upload a photo if you forgot <b>exactly</b> where it was taken</li>
-        <li>
-          Zoom in when taking the picture (lower quality & harder to pinpoint
-          location)
-        </li>
-        <li class="list-(--skull)">Upload NSFW content (instant ban)</li>
-        <li class="list-(--skull)">
-          Try to spam or DDOS the server (instant ban)
-        </li>
-      </ul>
+        <h2>Don't:</h2>
+        <ul class="list-(--x)">
+          <li>Edit your photo to obscure the location</li>
+          <li>
+            Upload a photo if you forgot <b>exactly</b> where it was taken
+          </li>
+          <li>
+            Zoom in when taking the picture (lower quality & harder to pinpoint
+            location)
+          </li>
+          <li class="list-(--skull)">Upload NSFW content (instant ban)</li>
+          <li class="list-(--skull)">
+            Try to spam or DDOS the server (instant ban)
+          </li>
+        </ul>
 
-      <hr style="margin: 12px 0px;" />
+        <hr style="margin: 12px 0px;" />
 
-      <h2>Remember:</h2>
-      <ul class="list-(--info)">
-        <li><b>Every photo submitted can be viewed publicly</b></li>
-        <li>All photos will be reviewed by an admin prior to approval</li>
-        <li>Submissions may be denied or deleted at any time without reason</li>
-      </ul>
-    </article>
+        <h2>Remember:</h2>
+        <ul class="list-(--info)">
+          <li><b>Every photo submitted can be viewed publicly</b></li>
+          <li>All photos will be reviewed by an admin prior to approval</li>
+          <li>
+            Submissions may be denied or deleted at any time without reason
+          </li>
+        </ul>
+      </article>
 
-    <div class="flex place-content-end">
-      <button
-        class="btn btn-success"
-        onclick={() => {
-          showRulesModal = false;
-        }}>Understood 🫡</button
-      >
+      <div class="flex place-content-end">
+        <button
+          class="btn btn-success"
+          onclick={() => {
+            showRulesModal = false;
+          }}>Understood 🫡</button
+        >
+      </div>
     </div>
-  </div>
-</dialog>
+  </dialog>
+</div>
 
 <style>
   :root {

@@ -39,7 +39,7 @@
   });
 </script>
 
-<nav class="flex justify-between place-items-center p-2 bg-base-300 z-50">
+<nav class="flex justify-between place-items-center p-2 bg-base-300 z-100">
   <div class="h-fit hidden sm:flex place-items-center gap-1">
     <a href="/" class="btn btn-ghost text-lg font-black">
       <span>TechGuessr</span>

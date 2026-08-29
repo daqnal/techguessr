@@ -1,4 +1,4 @@
-import { mapBorder, mapFill } from "../../consts";
+import { mapFill } from "../../consts";
 import { Marker, type LngLat, type Map } from "maplibre-gl";
 import { calculateBounds } from "./calculateBounds";
 import { mount } from "svelte";
