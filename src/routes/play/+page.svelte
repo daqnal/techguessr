@@ -392,7 +392,7 @@
       <img
         src={photos[currentPhotoIndex].publicUrl}
         alt="Check internet connection 👌"
-        class="w-full h-full object-contain select-none pointer-events-none"
+        class="w-full h-full object-contain backdrop-blur-xs select-none pointer-events-none"
       />
     </div>
   {/if}
@@ -400,7 +400,7 @@
   <div class="w-full h-full pointer-events-none">
     {#if !lockedIn || !showModal}
       <div
-        class="absolute top-2 left-2 badge badge-sm md:badge-md lg:badge-lg badge-neutral m-2 font-bold"
+        class="absolute top-2 left-2 badge badge-sm md:badge-md lg:badge-lg badge-neutral m-2 font-bold shadow-md"
       >
         Round {currentPhotoIndex + 1}/5
       </div>
@@ -485,7 +485,7 @@
             <button
               type="button"
               class="flex-1 btn btn-success shadow-lg {guess.lng === 0 &&
-                'btn-disabled bg-success/50'}"
+                'btn-disabled'}"
               onclick={() => handleLockIn()}
             >
               <Lock size={16} />

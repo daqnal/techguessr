@@ -3,7 +3,7 @@
   import { supabase } from "$lib/supabaseClient";
   import SettingsOption from "./SettingsOption.svelte";
   import { useTheme } from "svelte-themes";
-  import { userState } from "../state.svelte";
+  import { userState } from "$lib/state.svelte";
 
   const theme = useTheme();
 
@@ -103,23 +103,19 @@
           <input
             type="range"
             min={0}
-            max={0.5}
-            step={0.05}
+            max={0.6}
+            step={0.15}
             class="range range-primary"
             disabled={!userState.gridEnabled}
             bind:value={userState.gridSpeed}
+            onchange={() => console.log(userState.loggedIn)}
           />
-          <div class="flex justify-between mt-2 text-xs">
-            <span>None</span>
-            <span></span>
-            <span></span>
+          <div class="flex justify-between mt-2 text-xs opacity-60">
+            <span>Static</span>
             <span>Slow</span>
-            <span></span>
-            <span></span>
             <span>Medium</span>
-            <span></span>
-            <span></span>
             <span>Fast</span>
+            <span>Zoom</span>
           </div>
         </div>
       </SettingsOption>

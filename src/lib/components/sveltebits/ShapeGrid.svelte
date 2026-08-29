@@ -282,7 +282,7 @@
     };
 
     const updateAnimation = () => {
-      const effectiveSpeed = Math.max(speed, 0.1);
+      const effectiveSpeed = Math.max(speed, 0);
       const wrapX = isHex ? hexHoriz * 2 : squareSize;
       const wrapY = isHex ? hexVert : isTri ? squareSize * 2 : squareSize;
 

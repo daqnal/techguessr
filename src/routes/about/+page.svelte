@@ -1,5 +1,6 @@
 <script>
   import SplitText from "$lib/components/sveltebits/SplitText.svelte";
+  import { User } from "@lucide/svelte";
 </script>
 
 <svelte:head>
@@ -30,13 +31,19 @@
       <h2>Can I submit photos to the game?</h2>
       <p>
         Yes, please submit photos of locations you've taken on campus. However,
-        to upload photos you must create an account first. Click <a href="/auth"
-          >here</a
-        > to create an account or login.
+        to upload photos you must create an account first. Click the
+        <a
+          href="/auth"
+          class="btn btn-circle btn-xs btn-primary tooltip tooltip-bottom"
+          data-tip="Account"
+        >
+          <User size={12} />
+        </a>
+        button here or in the navbar to create an account or login.
       </p>
       <p>
-        Ensure that the photos you upload comply with the rules, as described
-        below.
+        Before uploading, ensure that your photos comply with the rules, as
+        described below.
       </p>
 
       <h2>What are the rules for submitting images?</h2>

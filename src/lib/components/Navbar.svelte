@@ -4,7 +4,7 @@
   import Avatar from "./auth/Avatar.svelte";
   import { onMount } from "svelte";
   import { page } from "$app/state";
-  import { userState } from "../../routes/state.svelte";
+  import { userState } from "$lib/state.svelte";
 
   let avatarPath = $state<string | null>(null);
 
