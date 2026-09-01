@@ -159,13 +159,13 @@
   });
 </script>
 
-<div class="overflow-y-auto py-8 px-2">
+<div class="flex-1 overflow-y-auto py-8 px-2 backdrop-blur-[2px]">
   <div class="flex-1 flex place-content-center place-items-center">
     <div class="w-full max-w-xl flex flex-col gap-2">
       <h1 class="tracking-wide text-4xl font-bold text-center">Results</h1>
 
       <div
-        class="w-full h-84 border-8 border-base-200 rounded-box overflow-clip"
+        class="w-full h-84 border-2 border-primary/50 p-2 bg-base-200 rounded-box overflow-clip"
       >
         <div
           id="map-results-container"
@@ -194,7 +194,9 @@
         {/if}
       </div>
 
-      <table class="table bg-base-200 rounded-box shadow-md overflow-hidden">
+      <table
+        class="table bg-base-200 rounded-box border-2 border-primary/50 shadow-md overflow-hidden"
+      >
         <thead>
           <tr>
             <th>Round</th>

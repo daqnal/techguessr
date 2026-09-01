@@ -392,7 +392,7 @@
       <img
         src={photos[currentPhotoIndex].publicUrl}
         alt="Check internet connection 👌"
-        class="w-full h-full object-contain backdrop-blur-xs select-none pointer-events-none"
+        class="w-full h-full object-contain backdrop-blur-[2px] select-none pointer-events-none"
       />
     </div>
   {/if}
@@ -522,7 +522,7 @@
 
 <!-- Modal -->
 <dialog class="modal {showModal && 'modal-open'}" id="score-modal">
-  <div class="modal-box flex flex-col gap-2 p-4">
+  <div class="modal-box flex flex-col gap-2 p-4 border-2 border-primary/50">
     <div class="flex place-content-between place-items-center mb-2">
       <h2 class="text-xl font-bold">Round {currentPhotoIndex + 1}</h2>
       <button
