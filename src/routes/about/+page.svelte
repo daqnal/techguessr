@@ -9,7 +9,9 @@
 
 <div class="flex-1 flex flex-col place-items-center overflow-y-auto px-4">
   <div class="max-w-200 h-full">
-    <article class="prose mt-8 lg:mt-16 p-4 rounded-box bg-base-300">
+    <article
+      class="prose mt-8 lg:mt-16 p-4 rounded-box bg-base-300 border-2 border-primary/50"
+    >
       <h1 class="text-5xl text-center -mb-12">
         <SplitText text="About TechGuessr 🗺️" delay={100} />
       </h1>
