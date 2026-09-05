@@ -27,7 +27,7 @@
 
 <div class="w-full h-full relative">
   <div
-    class="w-fit absolute top-1/2 left-1/2 -translate-1/2 pt-12 pointer-events-auto z-10"
+    class="w-fit absolute top-1/2 left-1/2 -translate-1/2 pt-12 pointer-events-auto"
   >
     <BounceCards
       images={pubUrls}
@@ -42,9 +42,9 @@
     class="w-full max-w-132 h-full absolute left-1/2 -translate-x-1/2 flex flex-col place-content-between text-center gap-4 px-2 py-8 pointer-events-none"
   >
     <div
-      class="text-5xl sm:text-6xl lg:text-7xl p-3 rounded-box text-shadow-lg flex flex-col place-content-center place-items-center gap-2"
+      class="text-4xl sm:text-6xl lg:text-7xl p-3 rounded-box text-shadow-lg flex flex-col place-content-center place-items-center gap-2"
     >
-      <div class="w-fit px-4 py-2 rounded-box">
+      <div class="w-fit rounded-box">
         <span class="font-medium -mr-2">
           <SplitText text="Tech" class="overflow-x-visible" delay={50} />
         </span>

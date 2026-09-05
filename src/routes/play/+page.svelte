@@ -481,7 +481,9 @@
               </div>
             </div>
           </div>
-          <div class="absolute bottom-2 right-0 w-full flex gap-2 px-2">
+          <div
+            class="absolute bottom-0 right-0 w-full flex gap-2 px-2 bg-base-300/95 p-2 rounded-t-box"
+          >
             <button
               type="button"
               class="flex-1 btn btn-success shadow-lg {guess.lng === 0 &&

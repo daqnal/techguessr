@@ -121,7 +121,9 @@
 >
   {#each images as src, idx (idx)}
     <div
-      class="bc-card bc-card-{idx} absolute w-48 min-h-36 md:w-64 md:min-h-48 lg:w-84 lg:min-h-63 border-8 border-neutral-content bg-neutral-content rounded-box overflow-hidden"
+      class="bc-card bc-card-{idx} absolute
+        w-[32vh] min-h-[24vh]
+        border-4 md:border-6 lg:border-8 border-neutral-content bg-neutral-content rounded-box overflow-hidden"
       style="box-shadow:0 4px 10px rgba(0,0,0,0.2); transform:{transformStyles[
         idx
       ] || 'none'};"
